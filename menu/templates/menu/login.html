@@ -28,6 +28,14 @@
                 <form method="POST">
                     {% csrf_token %}
 
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm font-bold text-center">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
                     {% if form.errors %}
                     <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm">
                         {{ form.errors }}
