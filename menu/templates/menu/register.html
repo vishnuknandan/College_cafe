@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LOL–Cafe Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black">
+
+    <!-- Background Image -->
+    <div class="relative w-full min-h-screen bg-cover bg-center"
+        style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836');">
+
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-black/60"></div>
+
+
+        <!-- Signup Card -->
+        <div class="relative z-30 flex items-center justify-center px-4 py-20">
+            <div class="bg-black/70 p-10 rounded-lg max-w-md w-full shadow-xl">
+
+                <h2 class="text-white text-3xl font-bold mb-6 text-center">
+                    Create Your LOL–Cafe Account 🍕
+                </h2>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                        <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm">
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Username -->
+                    <div class="mb-4">
+                        {{ form.username }}
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        {{ form.email }}
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        {{ form.password }}
+                    </div>
+
+                    <!-- Button -->
+                    <button
+                        class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-semibold text-lg">
+                        Create Account
+                    </button>
+
+                    <p class="text-gray-300 text-sm mt-4 text-center">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="text-red-500 hover:underline">Sign In</a>
+                    </p>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

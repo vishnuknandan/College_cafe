@@ -1,0 +1,42 @@
+{% extends 'menu/base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-10 px-6">
+    <h2 class="text-4xl font-bold text-red-500 mb-8">Contact Us 📞</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-900/60 p-8 rounded-2xl border border-gray-700 space-y-6">
+            <h3 class="text-2xl font-bold text-white">Get in Touch</h3>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    <span class="text-2xl">📧</span>
+                    <div>
+                        <p class="text-gray-400 text-sm">Email Address</p>
+                        <p class="text-white">support@foodspot.com</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-2xl">📱</span>
+                    <div>
+                        <p class="text-gray-400 text-sm">Phone Number</p>
+                        <p class="text-white">+91 98765 43210</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-2xl">📍</span>
+                    <div>
+                        <p class="text-gray-400 text-sm">Address</p>
+                        <p class="text-white">123 Food Street, Tasty Nagar, City - 560001</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-900/60 p-8 rounded-2xl border border-gray-700">
+            <h3 class="text-2xl font-bold text-white mb-6">Operating Hours</h3>
+            <ul class="space-y-3 text-gray-300">
+                <li class="flex justify-between"><span>Mon - Fri:</span> <span>10:00 AM - 11:00 PM</span></li>
+                <li class="flex justify-between"><span>Sat - Sun:</span> <span>09:00 AM - 12:00 AM</span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

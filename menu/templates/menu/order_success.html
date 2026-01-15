@@ -1,0 +1,35 @@
+{% extends "menu/base.html" %}
+{% block content %}
+
+<div class="max-w-xl mx-auto bg-black/60 p-8 rounded-xl border border-green-900/40 text-center mt-12">
+    <div class="mb-6">
+        <span class="text-6xl">✅</span>
+    </div>
+    <h2 class="text-3xl font-bold mb-4 text-green-400">Order Placed Successfully!</h2>
+    <p class="text-gray-300 mb-8">Thank you for your order. We have received it and will begin processing it shortly.
+    </p>
+
+    <div class="flex justify-center space-x-4">
+        <a href="{% url 'my_orders' %}"
+            class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
+            View My Orders
+        </a>
+        <a href="{% url 'home' %}" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition">
+            Continue Shopping
+        </a>
+    </div>
+</div>
+
+
+<script>
+    // Push a new state to the history stack
+    history.pushState(null, null, location.href);
+
+    // Listen for the popstate event (triggered when back button is pressed)
+    window.onpopstate = function () {
+        // Redirect to home page
+        window.location.replace("{% url 'home' %}");
+    };
+</script>
+
+{% endblock %}

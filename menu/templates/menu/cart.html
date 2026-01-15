@@ -1,0 +1,50 @@
+{% extends 'menu/base.html' %}
+{% block content %}
+
+<div class="px-6 py-8">
+
+    <div class="mb-4">
+        <a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition flex items-center gap-2 w-fit">
+            <span>&larr;</span> Back to Home
+        </a>
+    </div>
+
+    <h2 class="text-3xl font-bold mb-6">Your Cart 🛒</h2>
+
+    {% if data %}
+
+    <div class="bg-black/60 rounded-lg p-6 border border-red-900/40">
+
+        {% for item in data %}
+        <div class="flex justify-between items-center mb-4 pb-4 border-b border-red-800/30">
+
+            <div>
+                <h3 class="text-xl font-bold">{{ item.item.name }}</h3>
+                <p class="text-gray-400 text-sm">Qty: {{ item.qty }}</p>
+            </div>
+
+            <div class="text-right">
+                <p class="text-red-400 font-semibold">₹{{ item.total_price }}</p>
+                <a href="{% url 'delete_cart' item.id %}" class="text-red-500 text-sm">Remove</a>
+            </div>
+
+        </div>
+        {% endfor %}
+
+        <div class="text-right text-xl font-bold text-red-400">
+            Total: ₹{{ total_price }}
+        </div>
+
+        <a href="{% url 'checkout' %}"
+            class="mt-6 block bg-red-600 px-6 py-3 rounded text-center text-lg hover:bg-red-700">
+            Proceed to Checkout
+        </a>
+    </div>
+
+    {% else %}
+    <p class="text-gray-400 text-lg">Your cart is empty.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

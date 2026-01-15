@@ -1,0 +1,84 @@
+{% extends 'menu/base.html' %}
+{% block content %}
+
+<div class="px-6 py-8">
+
+    <div class="mb-4">
+        <a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition flex items-center gap-2 w-fit">
+            <span>&larr;</span> Back to Home
+        </a>
+    </div>
+
+    <h2 class="text-3xl font-bold mb-6">My Orders 📦</h2>
+
+    {% if orders %}
+    <div class="space-y-6">
+
+        {% for order in orders %}
+        <div class="bg-black/60 p-6 border border-red-900/40 rounded-lg">
+            <h3 class="text-xl font-bold">Order #{{ order.id }}</h3>
+            <p class="text-gray-400 text-sm">Date: {{ order.date_order }}</p>
+            <p class="text-gray-300">Status: {{ order.order_sts }}</p>
+
+            <div class="mt-3 mb-3 ml-6">
+                {% if order.orderitem %}
+                <p class="text-lg">{{ order.orderitem.name }} × {{ order.qty }}</p>
+                {% else %}
+                <p class="text-gray-500">Item unavailable</p>
+                {% endif %}
+            </div>
+
+            <p class="text-red-400 text-lg font-bold">
+                Total: ₹{{ order.price }}
+            </p>
+
+            {% if order.order_sts|lower == 'delivered' %}
+            <div class="mt-6 border-t border-gray-700 pt-4">
+                {% if order.review_set.exists %}
+                <p class="text-green-500 font-bold italic">Feedback Submitted! Thank you.</p>
+                {% else %}
+                <details class="group">
+                    <summary
+                        class="flex justify-between items-center cursor-pointer list-none text-white font-bold hover:text-red-500 transition">
+                        <span>Give Feedback & Rating</span>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </summary>
+
+                    <div class="mt-4 space-y-4 bg-gray-900/40 p-4 rounded-lg">
+                        <form action="{% url 'add_review' order.id %}" method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex flex-col space-y-2">
+                                    <label class="text-sm text-gray-400">Rating (1-5)</label>
+                                    {{ form.rating }}
+                                </div>
+                                <div class="flex flex-col space-y-2">
+                                    <label class="text-sm text-gray-400">Comment</label>
+                                    {{ form.comment }}
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-lg transition shadow-lg">
+                                Submit Feedback
+                            </button>
+                        </form>
+                    </div>
+                </details>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+    </div>
+    {% else %}
+    <p class="text-gray-400">No orders yet.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

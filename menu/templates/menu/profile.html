@@ -1,0 +1,168 @@
+{% extends 'menu/base.html' %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto pt-6">
+    <a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition flex items-center gap-2 w-fit">
+        <span>&larr;</span> Back to Home
+    </a>
+</div>
+
+<div class="max-w-4xl mx-auto py-10">
+    <div class="bg-gray-900 shadow-2xl rounded-2xl overflow-hidden border border-gray-700">
+
+        <!-- Main Update Form -->
+        <form method="POST" enctype="multipart/form-data" class="md:flex">
+            {% csrf_token %}
+
+            <!-- Hidden File Input for Profile Pic -->
+            {{ p_form.profile_pic }}
+
+            <!-- Left Side: Profile Card -->
+            <div class="md:w-1/3 bg-gray-800/50 p-8 text-center border-r border-gray-700 relative">
+
+                <div class="mb-6 relative group w-40 h-40 mx-auto cursor-pointer"
+                    onclick="document.getElementById('profile-upload').click()">
+                    <!-- Profile Image -->
+                    <img id="profile-preview"
+                        src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=random{% endif %}"
+                        class="w-full h-full rounded-full object-cover border-4 border-red-500 shadow-lg transition duration-300 group-hover:opacity-50">
+
+                    <!-- Edit Overlay -->
+                    <div
+                        class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                        <span class="text-white font-bold text-lg bg-black/50 px-3 py-1 rounded">Edit 📷</span>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white">{{ user.username }}</h2>
+                <p class="text-gray-400 text-sm mb-4">{{ user.email }}</p>
+
+                <div class="mt-6 text-left border-t border-gray-700 pt-6">
+                    <p class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</p>
+                    <div class="flex flex-col space-y-3 text-sm">
+                        <a href="{% url 'my_orders' %}" class="text-gray-400 hover:text-white transition">📦 My
+                            Orders</a>
+
+                        <a href="{% url 'about_us' %}" class="text-gray-400 hover:text-white transition">ℹ️ About Us</a>
+                        <a href="{% url 'contact_us' %}" class="text-gray-400 hover:text-white transition">📞 Contact
+                            Us</a>
+
+                        <a href="{% url 'terms' %}" class="text-gray-400 hover:text-white transition">📜 Terms &
+                            Conditions</a>
+                        <a href="{% url 'privacy' %}" class="text-gray-400 hover:text-white transition">🔒 Privacy
+                            Policy</a>
+                        <a href="{% url 'refund' %}" class="text-gray-400 hover:text-white transition">💸 Refund
+                            Policy</a>
+
+                        <a href="{% url 'logout' %}"
+                            class="text-red-400 hover:text-red-300 transition font-bold mt-2">🚪 Logout</a>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-red-900/40">
+                    <button type="button" onclick="openDeleteModal()"
+                        class="text-red-600 hover:text-red-400 font-bold text-xs tracking-widest uppercase transition">
+                        Delete Account 🗑️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Edit Form -->
+            <div class="md:w-2/3 p-10 bg-black/40">
+                <h3 class="text-3xl font-bold text-red-500 mb-8">Account Settings</h3>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2">First Name</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2">Last Name</label>
+                            {{ u_form.last_name }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-2">Email Address</label>
+                        {{ u_form.email }}
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-2">Bio</label>
+                        {{ p_form.bio }}
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition duration-300 transform hover:scale-[1.02] shadow-xl">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- Custom Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div
+        class="bg-gray-900 p-8 rounded-2xl border border-red-600/50 max-w-md w-full text-center shadow-2xl transform scale-100 transition-all">
+        <div class="text-6xl mb-4">⚠️</div>
+        <h3 class="text-2xl font-bold text-white mb-2">Delete Account?</h3>
+        <p class="text-gray-400 mb-8">This action is permanent. All your data and order history will be wiped correctly.
+        </p>
+
+        <div class="flex space-x-4 justify-center">
+            <button onclick="closeDeleteModal()"
+                class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold transition">
+                Cancel
+            </button>
+            <button onclick="confirmDelete()"
+                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg hover:shadow-red-900/50">
+                Yes, Delete it
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Delete Form -->
+<form id="delete-form" action="{% url 'delete_account' %}" method="POST" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+    // Image Preview Script
+    const fileInput = document.getElementById('profile-upload');
+    const previewImg = document.getElementById('profile-preview');
+
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Modal Logic
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deleteModal').classList.remove('flex');
+    }
+
+    function confirmDelete() {
+        document.getElementById('delete-form').submit();
+    }
+</script>
+
+{% endblock %}

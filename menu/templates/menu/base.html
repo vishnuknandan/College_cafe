@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FoodSpot{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+</head>
+
+<body class="bg-black text-white">
+
+    <!-- NAVBAR -->
+    <nav class="bg-gray-900 p-4 shadow-xl flex justify-between items-center sticky top-0 z-50">
+        <a href="{% url 'home' %}" class="text-2xl font-semibold text-red-400">FoodSpot</a>
+
+        <div class="flex items-center space-x-6">
+            <a href="{% url 'cart' %}" class="hover:text-red-400">Cart</a>
+            <a href="{% url 'my_orders' %}" class="hover:text-red-400">My Orders</a>
+            <a href="{% url 'profile' %}" class="hover:text-red-400">Profile</a>
+            <a href="{% url 'logout' %}" class="hover:text-red-400">Logout</a>
+        </div>
+    </nav>
+
+    <div class="p-6">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+
+</html>

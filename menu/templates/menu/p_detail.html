@@ -1,0 +1,119 @@
+{% extends "menu/base.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto mb-4">
+    <a href="{% url 'category_detail' data.category.id %}"
+        class="text-gray-400 hover:text-white transition flex items-center gap-2 w-fit">
+        <span>&larr;</span> Back to {{ data.category.name }}
+    </a>
+</div>
+
+<div class="max-w-4xl mx-auto bg-black/60 p-8 rounded-xl border border-red-900/40">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- Product Image -->
+        <div>
+            {% if data.product_image %}
+            <img src="{{ data.product_image.url }}" class="w-full rounded-xl shadow-lg object-cover h-96">
+            {% else %}
+            <div class="w-full h-96 bg-gray-800 rounded-xl flex items-center justify-center text-gray-500">
+                No Image
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Details -->
+        <div>
+            <h2 class="text-4xl font-bold text-red-500 mb-4">{{ data.name }}</h2>
+            <p class="text-gray-300 mb-6 text-lg">{{ data.description }}</p>
+
+            <div class="flex items-center space-x-4 mb-8">
+                <span class="text-3xl font-bold text-white">₹{{ data.selling_price }}</span>
+                {% if data.original_price %}
+                <span class="text-xl text-gray-500 line-through">₹{{ data.original_price }}</span>
+                {% endif %}
+            </div>
+
+            <div class="mb-6 flex items-center space-x-4">
+                <label class="text-gray-300 font-semibold">Quantity:</label>
+                <div class="flex items-center bg-gray-700 rounded-lg">
+                    <button onclick="updateQty(-1)"
+                        class="px-4 py-2 hover:bg-gray-600 rounded-l-lg text-white font-bold text-xl">-</button>
+                    <input type="number" id="qty-input" value="1" min="1" max="{{ data.quantity }}" readonly
+                        class="w-16 bg-transparent text-center text-white font-bold border-none focus:ring-0">
+                    <button onclick="updateQty(1)"
+                        class="px-4 py-2 hover:bg-gray-600 rounded-r-lg text-white font-bold text-xl">+</button>
+                </div>
+                <span class="text-gray-400 text-sm">({{ data.quantity }} available)</span>
+            </div>
+
+            <div class="space-y-4">
+                <a href="#" onclick="addToCart(event)"
+                    class="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-center transition">
+                    Add to Cart 🛒
+                </a>
+
+                <a href="#" onclick="buyNow(event)"
+                    class="block w-full bg-white hover:bg-gray-200 text-black font-bold py-3 px-6 rounded-lg text-center transition">
+                    Buy Now ⚡
+                </a>
+            </div>
+
+            {% if data.quantity > 0 %}
+            <p class="mt-4 text-green-400 text-sm">In Stock</p>
+            {% else %}
+            <p class="mt-4 text-red-500 text-sm">Out of Stock</p>
+            {% endif %}
+
+            <script>
+                function updateQty(change) {
+                    const input = document.getElementById('qty-input');
+                    let val = parseInt(input.value);
+                    let max = parseInt("{{ data.quantity }}");
+                    val += change;
+                    if (val < 1) val = 1;
+                    if (val > max) val = max;
+                    input.value = val;
+                }
+
+                function addToCart(e) {
+                    e.preventDefault();
+                    const qty = document.getElementById('qty-input').value;
+                    window.location.href = "{% url 'add_to_cart' data.id %}?qty=" + qty;
+                }
+
+                function buyNow(e) {
+                    e.preventDefault();
+                    const qty = document.getElementById('qty-input').value;
+                    window.location.href = "{% url 'buy' data.id %}?qty=" + qty;
+                }
+            </script>
+        </div>
+
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="mt-12 border-t border-gray-700 pt-8">
+        <h3 class="text-2xl font-bold text-white mb-6">Customer Reviews ⭐</h3>
+
+        {% if data.review_set.all %}
+        <div class="space-y-6">
+            {% for review in data.review_set.all|dictsortreversed:"date"|slice:":5" %}
+            <div class="bg-gray-800/40 p-5 rounded-lg border border-gray-700">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-red-400">{{ review.user.username }}</span>
+                    <span class="text-yellow-500 font-bold">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %} ★ {% else %} ☆ {% endif %} {% endfor %} </span>
+                </div>
+                <p class="text-gray-300 italic">"{{ review.comment }}"</p>
+                <p class="text-gray-500 text-xs mt-3">{{ review.date|date:"F d, Y" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 italic">No reviews yet for this product.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
