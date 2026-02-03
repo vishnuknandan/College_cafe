@@ -464,3 +464,4 @@ class DeleteAccountView(View):
 def order_success(request):
     return render(request, "menu/order_success.html")
 print("Order Success")
+print("hello sangeeth")
