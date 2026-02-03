@@ -5,8 +5,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FoodSpot{% endblock %}</title>
+    <title>{% block title %}FoodSpot - Premium Gaming Cafe{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Outfit (Modern, Geometric) -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Global Styles -->
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(220, 38, 38, 0.1) 0%, transparent 40%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+
+        /* Smooth Fade In */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
     <script>
         window.addEventListener("pageshow", function (event) {
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
@@ -16,24 +81,127 @@
     </script>
 </head>
 
-<body class="bg-black text-white">
+<body class="flex flex-col min-h-screen">
 
-    <!-- NAVBAR -->
-    <nav class="bg-gray-900 p-4 shadow-xl flex justify-between items-center sticky top-0 z-50">
-        <a href="{% url 'home' %}" class="text-2xl font-semibold text-red-400">FoodSpot</a>
+    <!-- NAVIGATION BAR -->
+    <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-        <div class="flex items-center space-x-6">
-            <a href="{% url 'cart' %}" class="hover:text-red-400">Cart</a>
-            <a href="{% url 'my_orders' %}" class="hover:text-red-400">My Orders</a>
-            <a href="{% url 'profile' %}" class="hover:text-red-400">Profile</a>
-            <a href="{% url 'logout' %}" class="hover:text-red-400">Logout</a>
+            <!-- Logo -->
+            <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+                <div
+                    class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition duration-300 shadow-[0_0_15px_rgba(239,68,68,0.6)]">
+                    <span class="text-white font-bold text-xl">F</span>
+                </div>
+                <span class="text-2xl font-bold tracking-tight group-hover:text-red-500 transition">Food<span
+                        class="text-red-500">Spot</span></span>
+            </a>
+
+            <!-- Desktop Links -->
+            {% if user.is_authenticated %}
+            <div class="hidden md:flex items-center space-x-8 text-sm font-semibold uppercase tracking-wide">
+                <a href="{% url 'home' %}" class="relative group text-gray-300 hover:text-white transition">
+                    Home
+                    <span
+                        class="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-500 transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'my_orders' %}" class="relative group text-gray-300 hover:text-white transition">
+                    Orders
+                    <span
+                        class="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-500 transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'contact_us' %}" class="relative group text-gray-300 hover:text-white transition">
+                    Contact
+                    <span
+                        class="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-500 transition-all group-hover:w-full"></span>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Search Bar -->
+            <form action="{% url 'search' %}" method="GET"
+                class="hidden md:flex items-center bg-white/5 border border-gray-700 rounded-full px-4 py-2 ml-4 focus-within:border-red-500/50 focus-within:bg-white/10 transition">
+                <input type="text" name="q" placeholder="Search food..."
+                    class="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
+                <button type="submit" class="text-gray-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Right Actions -->
+            <div class="flex items-center space-x-6">
+                <!-- Cart Icon -->
+                {% if user.is_authenticated %}
+                <a href="{% url 'cart' %}" class="relative group text-gray-300 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {% if user.cart_set.count > 0 %}
+                    <span
+                        class="absolute -top-2 -right-2 bg-red-600 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-lg animate-bounce">
+                        {{ user.cart_set.count }}
+                    </span>
+                    {% endif %}
+                </a>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}"
+                    class="flex items-center gap-3 glass px-4 py-2 rounded-full hover:bg-white/10 transition border-transparent hover:border-red-500/30 group">
+
+                    <div
+                        class="w-8 h-8 rounded-full overflow-hidden border-2 border-red-500/50 group-hover:border-red-500 transition">
+                        {% if user.profile.profile_pic %}
+                        <img src="{{ user.profile.profile_pic.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=1f2937&color=fff"
+                            class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <span class="hidden md:block font-semibold text-sm">{{ user.username }}</span>
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}"
+                    class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6 py-2.5 rounded-full shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.23)] hover:-translate-y-0.5 transition ease-in-out">
+                    Login
+                </a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
-    <div class="p-6">
+    <!-- CONTENT WRAPPER -->
+    <main class="flex-grow pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full fade-in">
         {% block content %}
         {% endblock %}
-    </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-20 border-t border-gray-800 bg-black/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto py-12 px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left">
+                    <h3 class="text-2xl font-bold text-white mb-2">Food<span class="text-red-500">Spot</span></h3>
+                    <p class="text-gray-500 text-sm">Premium flavours for the gaming elite.</p>
+                </div>
+
+                <div class="flex space-x-6 text-sm text-gray-400">
+                    <a href="{% url 'about_us' %}" class="hover:text-red-500 transition">About</a>
+                    <a href="{% url 'terms' %}" class="hover:text-red-500 transition">Terms</a>
+                    <a href="{% url 'privacy' %}" class="hover:text-red-500 transition">Privacy</a>
+                    <a href="{% url 'refund' %}" class="hover:text-red-500 transition">Refunds</a>
+                </div>
+
+                <p class="text-gray-600 text-xs">© 2026 FoodSpot Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
 </body>
 

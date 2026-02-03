@@ -25,6 +25,7 @@ class Product(models.Model):
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     description = models.TextField(max_length=300, null=False)
+    is_veg = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

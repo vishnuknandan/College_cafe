@@ -1,82 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "menu/base.html" %}
+{% block content %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LOL–Cafe Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<div class="flex items-center justify-center min-h-[70vh] py-12">
+    <div class="glass w-full max-w-md p-10 rounded-3xl border border-gray-800 shadow-[0_0_40px_rgba(220,38,38,0.2)]">
 
-<body class="bg-black">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-white mb-2">Welcome Back</h2>
+            <p class="text-gray-400 text-sm">Sign in to access your gaming fuel.</p>
+        </div>
 
-    <!-- Background Image -->
-    <div class="relative w-full min-h-screen bg-cover bg-center"
-        style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836');">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-xl mb-6 text-sm font-bold text-center">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
 
-        <!-- Dark Overlay -->
-        <div class="absolute inset-0 bg-black/60"></div>
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
 
-        <!-- Login Card -->
-        <div class="relative z-30 flex items-center justify-center px-4 py-20">
-            <div class="bg-black/70 p-10 rounded-lg max-w-md w-full shadow-xl">
-
-                <h2 class="text-white text-3xl font-bold mb-6 text-center">
-                    Welcome Back to LOL–Cafe 🍔
-                </h2>
-
-                <form method="POST">
-                    {% csrf_token %}
-
-                    {% if messages %}
-                    {% for message in messages %}
-                    <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm font-bold text-center">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-
-                    {% if form.errors %}
-                    <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm">
-                        {{ form.errors }}
-                    </div>
-                    {% endif %}
-
-                    <!-- Username -->
-                    <div class="mb-4">
-                        {{ form.username }}
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mb-4">
-                        {{ form.password }}
-                    </div>
-
-                    <!-- Login Button -->
-                    <button class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-semibold text-lg">
-                        Login
-                    </button>
-
-                    <div class="mt-4 text-center">
-                        <a href="{% url 'password_reset' %}"
-                            class="text-gray-400 hover:text-red-500 text-sm transition duration-300">
-                            Forgot Password?
-                        </a>
-                    </div>
-
-
-                    <p class="text-gray-300 text-sm mt-4 text-center">
-                        Don't have an account?
-                        <a href="{% url 'register' %}" class="text-red-500 hover:underline">Register here</a>
-                    </p>
-
-                </form>
-
+            {% if form.non_field_errors %}
+            <div class="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-xl mb-4 text-center text-sm">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
             </div>
+            {% endif %}
+
+            <!-- Username Field -->
+            <div>
+                <label for="id_username"
+                    class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Username</label>
+                <div class="relative">
+                    <input type="text" name="username" autofocus required id="id_username"
+                        class="w-full bg-black/40 text-white border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition placeholder-gray-600"
+                        placeholder="Enter your username">
+                </div>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="id_password"
+                    class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" name="password" required id="id_password"
+                        class="w-full bg-black/40 text-white border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition placeholder-gray-600"
+                        placeholder="Enter your password">
+                </div>
+                <!-- <div class="text-right mt-2">
+                    <a href="{% url 'password_reset' %}" class="text-xs text-red-400 hover:text-red-300 transition">Forgot Password?</a>
+                </div> -->
+            </div>
+
+            <button type="submit"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.23)] hover:-translate-y-0.5 transition ease-in-out">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm text-gray-500">
+            Don't have an account?
+            <a href="{% url 'register' %}" class="text-white hover:text-red-500 font-bold transition ml-1">Create
+                one</a>
         </div>
 
     </div>
+</div>
 
-</body>
-
-</html>
+{% endblock %}

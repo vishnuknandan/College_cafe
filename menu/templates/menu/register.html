@@ -1,70 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LOL–Cafe Signup</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-black">
+{% extends "menu/base.html" %}
+{% block content %}
 
-    <!-- Background Image -->
-    <div class="relative w-full min-h-screen bg-cover bg-center"
-        style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836');">
+<div class="flex items-center justify-center min-h-[80vh] py-12">
+    <div class="glass w-full max-w-md p-10 rounded-3xl border border-gray-800 shadow-[0_0_40px_rgba(220,38,38,0.2)]">
 
-        <!-- Dark Overlay -->
-        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-white mb-2">Join the Squad</h2>
+            <p class="text-gray-400 text-sm">Create an account to start ordering.</p>
+        </div>
 
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
 
-        <!-- Signup Card -->
-        <div class="relative z-30 flex items-center justify-center px-4 py-20">
-            <div class="bg-black/70 p-10 rounded-lg max-w-md w-full shadow-xl">
-
-                <h2 class="text-white text-3xl font-bold mb-6 text-center">
-                    Create Your LOL–Cafe Account 🍕
-                </h2>
-
-                <form method="POST">
-                    {% csrf_token %}
-
-                    {% if form.errors %}
-                        <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm">
-                            {{ form.errors }}
-                        </div>
-                    {% endif %}
-
-                    <!-- Username -->
-                    <div class="mb-4">
-                        {{ form.username }}
-                    </div>
-
-                    <!-- Email -->
-                    <div class="mb-4">
-                        {{ form.email }}
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mb-4">
-                        {{ form.password }}
-                    </div>
-
-                    <!-- Button -->
-                    <button
-                        class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-semibold text-lg">
-                        Create Account
-                    </button>
-
-                    <p class="text-gray-300 text-sm mt-4 text-center">
-                        Already have an account?
-                        <a href="{% url 'login' %}" class="text-red-500 hover:underline">Sign In</a>
-                    </p>
-
-                </form>
-
+            {% if form.errors %}
+            <div class="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-xl mb-4 text-center text-sm">
+                {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+                {% endfor %}
             </div>
+            {% endif %}
+
+            <!-- Username Field -->
+            <div>
+                <label for="id_username"
+                    class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Username</label>
+                <div class="relative">
+                    <input type="text" name="username" required id="id_username"
+                        class="w-full bg-black/40 text-white border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition placeholder-gray-600"
+                        placeholder="Choose a username">
+                </div>
+            </div>
+
+            <!-- Email Field -->
+            <div>
+                <label for="id_email"
+                    class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Email</label>
+                <div class="relative">
+                    <input type="email" name="email" id="id_email"
+                        class="w-full bg-black/40 text-white border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition placeholder-gray-600"
+                        placeholder="Required for order updates">
+                </div>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="id_password"
+                    class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" name="password" required id="id_password"
+                        class="w-full bg-black/40 text-white border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition placeholder-gray-600"
+                        placeholder="Create a strong password">
+                </div>
+            </div>
+
+
+            <button type="submit"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.23)] hover:-translate-y-0.5 transition ease-in-out">
+                Create Account
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm text-gray-500">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-white hover:text-red-500 font-bold transition ml-1">Sign In</a>
         </div>
 
     </div>
+</div>
 
-</body>
-</html>
+{% endblock %}

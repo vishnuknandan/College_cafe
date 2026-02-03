@@ -1,0 +1,60 @@
+{% extends "menu/base.html" %}
+{% block content %}
+
+<div class="mb-8 text-center fade-in">
+    <h2 class="text-4xl font-extrabold text-white mb-2">Search Results</h2>
+    <p class="text-gray-400">Found matches for your cravings.</p>
+</div>
+
+{% if result %}
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+    {% for prod in result %}
+    <div class="glass rounded-2xl overflow-hidden group relative hover:border-red-500/50 transition duration-300">
+
+        <!-- Image -->
+        <a href="{% url 'product_detail' prod.id %}" class="block overflow-hidden h-56 relative">
+            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition z-10"></div>
+            {% if prod.product_image %}
+            <img src="{{ prod.product_image.url }}"
+                class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+            {% else %}
+            <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">No Image</div>
+            {% endif %}
+        </a>
+
+        <!-- Content -->
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-white truncate mb-1 group-hover:text-red-400 transition">
+                {{ prod.name }}
+            </h3>
+            <div class="flex items-end justify-between">
+                <div>
+                    <span class="text-xs text-gray-400 line-through">₹{{ prod.original_price }}</span>
+                    <div class="text-xl font-bold text-red-500">₹{{ prod.selling_price }}</div>
+                </div>
+                <a href="{% url 'add_to_cart' prod.id %}"
+                    class="bg-white/10 hover:bg-red-600 text-white p-2 rounded-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20">
+    <div class="text-6xl mb-6">🔍</div>
+    <h3 class="text-2xl font-bold text-gray-300 mb-4">No results found</h3>
+    <p class="text-gray-500 mb-8">Try searching for something else like "Burger" or "Pizza".</p>
+    <a href="{% url 'home' %}"
+        class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
+        Back to Menu
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
