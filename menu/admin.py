@@ -11,6 +11,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_editable = ('order_sts',)
     list_filter = ('order_sts', 'date_order')
     search_fields = ('tracking_no', 'customer__username')
+    ordering = ('date_order',)   # Oldest order first (queue: first in, first served)
 
 admin.site.register(Review)
 admin.site.register(Profile)
