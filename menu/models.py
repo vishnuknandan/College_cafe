@@ -98,6 +98,21 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
+# ------------------------------ EMAIL OTP ------------------------------
+
+class EmailOTP(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        from django.utils import timezone
+        return (timezone.now() - self.created_at).total_seconds() > 600  # 10 minutes
+
+    def __str__(self):
+        return f"OTP for {self.email}"
+
+
 # Create profile automatically when user is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

@@ -15,7 +15,7 @@ import string
 
 from django.contrib.auth.models import User
 from .forms import UserRegisterForm, UserLoginForm, UserOrderForm, ReviewForm, UserUpdateForm, ProfileUpdateForm
-from .models import Category, Product, Cart, Order, Review, Profile
+from .models import Category, Product, Cart, Order, Review, Profile, EmailOTP
 
 
 # ------------------------ LOGIN REQUIRED DECORATOR ------------------------
@@ -39,10 +39,105 @@ class UserRegisterView(View):
     def post(self, request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Account created successfully!")
-            return redirect("login")
+            email = form.cleaned_data["email"]
+            username = form.cleaned_data["username"]
+
+            # Check if email or username already exists
+            if User.objects.filter(email=email).exists():
+                messages.error(request, "An account with this email already exists.")
+                return render(request, "menu/register.html", {"form": form})
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "This username is already taken.")
+                return render(request, "menu/register.html", {"form": form})
+
+            # Generate 6-digit OTP
+            otp_code = str(random.randint(100000, 999999))
+
+            # Remove any existing OTP for this email
+            EmailOTP.objects.filter(email=email).delete()
+            EmailOTP.objects.create(email=email, otp=otp_code)
+
+            # Store registration data in session
+            request.session['reg_username'] = username
+            request.session['reg_email'] = email
+            request.session['reg_password'] = form.cleaned_data["password"]
+
+            # Send OTP email
+            subject = "Your LOL Cafe Verification Code"
+            message = (
+                f"Hi {username},\n\n"
+                f"Your verification code is: {otp_code}\n\n"
+                f"This code is valid for 10 minutes.\n"
+                f"If you did not request this, please ignore this email.\n\n"
+                f"- LOL Cafe Team"
+            )
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            except Exception as e:
+                print(f"OTP email failed: {e}")
+                messages.error(request, "Failed to send OTP. Please try again.")
+                return render(request, "menu/register.html", {"form": form})
+
+            messages.success(request, f"A 6-digit code has been sent to {email}. Please verify.")
+            return redirect("verify_otp")
+
         return render(request, "menu/register.html", {"form": form})
+
+
+@method_decorator(never_cache, name="dispatch")
+class VerifyOTPView(View):
+    def get(self, request):
+        email = request.session.get('reg_email')
+        if not email:
+            messages.error(request, "Session expired. Please register again.")
+            return redirect("register")
+        return render(request, "menu/verify_otp.html", {"email": email})
+
+    def post(self, request):
+        email = request.session.get('reg_email')
+        if not email:
+            messages.error(request, "Session expired. Please register again.")
+            return redirect("register")
+
+        # Combine the 6 digit inputs
+        digits = [
+            request.POST.get(f"otp_{i}", "").strip()
+            for i in range(1, 7)
+        ]
+        entered_otp = "".join(digits)
+
+        try:
+            otp_record = EmailOTP.objects.filter(email=email).latest('created_at')
+        except EmailOTP.DoesNotExist:
+            messages.error(request, "OTP not found. Please register again.")
+            return redirect("register")
+
+        if otp_record.is_expired():
+            otp_record.delete()
+            messages.error(request, "OTP has expired. Please register again.")
+            # Clear session data
+            for key in ['reg_username', 'reg_email', 'reg_password']:
+                request.session.pop(key, None)
+            return redirect("register")
+
+        if entered_otp != otp_record.otp:
+            messages.error(request, "Invalid OTP. Please try again.")
+            return render(request, "menu/verify_otp.html", {"email": email})
+
+        # OTP is valid — create the user
+        username = request.session.get('reg_username')
+        password = request.session.get('reg_password')
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+
+        # Clean up
+        otp_record.delete()
+        for key in ['reg_username', 'reg_email', 'reg_password']:
+            request.session.pop(key, None)
+
+        messages.success(request, "Account created successfully! Please log in.")
+        return redirect("login")
 
 
 @method_decorator(never_cache, name="dispatch")

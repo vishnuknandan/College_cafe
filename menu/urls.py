@@ -7,7 +7,7 @@ from .views import (
     IncreaseQty, DecreaseQty,
     BuyNowView, UserOrdersView, CheckoutView,
     SearchView, order_success, AddReviewView, ProfileView,
-    DeleteAccountView
+    DeleteAccountView, VerifyOTPView
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path("", UserLoginView.as_view(), name="login"),
     path("login/", UserLoginView.as_view()),
     path("register/", UserRegisterView.as_view(), name="register"),
+    path("verify-otp/", VerifyOTPView.as_view(), name="verify_otp"),
     path("logout/", UserLogoutView, name="logout"),
     path("profile/", ProfileView.as_view(), name="profile"),
 
