@@ -1,183 +1,317 @@
 {% extends "menu/base.html" %}
 {% block content %}
 
-<!-- HERO SECTION -->
-<div class="relative w-full h-[500px] rounded-3xl overflow-hidden shadow-2xl mb-16 group">
-    <div class="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent z-10"></div>
-    <img src="https://images.unsplash.com/photo-1544025162-d76690b67f66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-        class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition duration-[2s] ease-out">
+<!-- Swiper.js CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
-    <div class="absolute inset-0 z-20 flex flex-col justify-center px-10 md:px-20">
-        <span class="text-red-500 font-bold tracking-widest uppercase mb-4 animate-pulse">Premium Taste</span>
-        <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight drop-shadow-lg mb-6">
-            Level Up <br> Your <span
-                class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Cravings</span>
-        </h1>
-        <p class="text-gray-200 text-lg md:text-xl max-w-xl mb-8 drop-shadow-md">
-            Fuel your gaming sessions with our chef-curated menu. Delivered fast, tasted slow.
-        </p>
-        <a href="#menu-categories"
-            class="bg-red-600 text-white px-8 py-4 rounded-full font-bold text-lg w-fit shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:shadow-[0_0_40px_rgba(220,38,38,0.7)] hover:-translate-y-1 transition duration-300">
-            Order Now 🚀
-        </a>
-    </div>
-</div>
+<!-- PREMIUM HERO OFFER SWIPER -->
+<div
+    class="swiper mainHeroSwiper mb-20 rounded-[3rem] overflow-hidden shadow-2xl h-[700px] border border-white/10 group">
+    <div class="swiper-wrapper">
+        <!-- SLIDE 1: VEG OFFERS -->
+        <div class="swiper-slide relative bg-[#050505]">
+            <img src="https://images.unsplash.com/photo-1544025162-d76690b67f66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+                class="absolute inset-0 w-full h-full object-cover opacity-40 transform group-hover:scale-110 transition duration-[10s]">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-10"></div>
 
-<!-- OFFER ZONE -->
-{% if offer_products %}
-<div class="mb-20">
-    <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-        <div class="flex items-center space-x-3">
-            <h2 class="text-3xl font-bold text-white flex items-center gap-2">
-                🔥 Hot Deals <span class="text-gray-500 text-base font-normal ml-2">Limited Time Offers</span>
-            </h2>
-        </div>
-
-        <!-- Veg/Non-Veg Filter -->
-        <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-800">
-            <button onclick="filterProducts('all')" id="btn-all"
-                class="px-6 py-2 rounded-lg text-sm font-bold transition-all bg-red-600 text-white shadow-lg">All</button>
-            <button onclick="filterProducts('veg')" id="btn-veg"
-                class="px-6 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">Veg
-                🥬</button>
-            <button onclick="filterProducts('nonveg')" id="btn-nonveg"
-                class="px-6 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">Non-Veg
-                🍗</button>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 transition-all" id="offer-grid">
-        {% for prod in offer_products %}
-        <div class="glass rounded-2xl overflow-hidden group relative hover:border-red-500/50 transition duration-300 transform animate-fade-in product-card"
-            data-veg="{{ prod.is_veg|yesno:'true,false' }}">
-
-            <!-- Badge -->
-            <div class="absolute top-3 right-3 z-10 flex flex-col gap-2 items-end">
-                <div class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                    -50% OFF
+            <div class="absolute inset-0 z-20 flex flex-col justify-end p-10 md:p-20">
+                <div class="mb-10">
+                    <h1 class="text-6xl md:text-8xl font-black text-white leading-none italic tracking-tighter mb-4">
+                        LEVEL UP <br> YOUR <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">CRAVINGS</span>
+                    </h1>
                 </div>
-                {% if prod.is_veg %}
-                <div class="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded border border-green-400">
-                    VEG</div>
-                {% else %}
-                <div class="bg-red-800 text-white text-[10px] font-bold px-2 py-0.5 rounded border border-red-500">
-                    NON-VEG</div>
-                {% endif %}
-            </div>
 
-            <!-- Image -->
-            <a href="{% url 'product_detail' prod.id %}" class="block overflow-hidden h-56 relative">
-                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition z-10"></div>
-                {% if prod.product_image %}
-                <img src="{{ prod.product_image.url }}"
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-                {% else %}
-                <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">No Image</div>
-                {% endif %}
-            </a>
-
-            <!-- Content -->
-            <div class="p-5">
-                <h3 class="text-lg font-bold text-white truncate mb-1 group-hover:text-red-400 transition">
-                    {{ prod.name }}</h3>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <span class="text-xs text-gray-400 line-through">₹{{ prod.original_price }}</span>
-                        <div class="text-xl font-bold text-red-500">₹{{ prod.selling_price }}</div>
+                <!-- Product Row (Horizontal Scroll) -->
+                <div class="swiper productSwiper !overflow-visible w-full">
+                    <div class="swiper-wrapper">
+                        {% for prod in veg_offers %}
+                        <div class="swiper-slide !w-[300px] md:!w-[350px]">
+                            <div
+                                class="bg-[#111111] rounded-[2rem] p-6 border border-white/5 hover:border-green-500/30 transition duration-500 shadow-2xl">
+                                <div class="flex gap-6 items-center">
+                                    <div class="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-white/10">
+                                        <img src="{{ prod.product_image.url }}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="text-xl font-bold text-white truncate w-40">{{ prod.name }}</h3>
+                                        <div class="flex items-end gap-2 mt-2">
+                                            <span class="text-2xl font-black text-green-500">
+                                                ₹{{ prod.selling_price|floatformat:0 }}</span>
+                                            <span class="text-xs text-gray-600 line-through font-bold mb-1">
+                                                ₹{{ prod.original_price }}</span>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'add_to_cart' prod.id %}"
+                                        class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-black hover:scale-110 transition shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <a href="{% url 'add_to_cart' prod.id %}"
-                        class="bg-white/10 hover:bg-red-600 text-white p-2 rounded-lg transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                    </a>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
 
-    <!-- Empty State for Filter -->
-    <div id="no-products-msg" class="hidden text-center py-10">
-        <p class="text-gray-500 text-lg">No items match this filter.</p>
-    </div>
+        <!-- SLIDE 2: NON-VEG OFFERS -->
+        <div class="swiper-slide relative bg-[#050505]">
+            <img src="https://images.unsplash.com/photo-1544025162-d76690b67f66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+                class="absolute inset-0 w-full h-full object-cover opacity-40 transform scale-x-[-1] transition duration-[10s]">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-10"></div>
 
-</div>
-{% endif %}
+            <div class="absolute inset-0 z-20 flex flex-col justify-end p-10 md:p-20">
+                <div class="mb-10">
+                    <h1 class="text-6xl md:text-8xl font-black text-white leading-none italic tracking-tighter mb-4">
+                        LEVEL UP <br> YOUR <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-600">CRAVINGS</span>
+                    </h1>
+                </div>
 
-<!-- CATEGORIES -->
-<div id="menu-categories" class="mb-20">
-    <h2 class="text-3xl font-bold mb-8 text-white">Explore Menu</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {% for cat in categories %}
-        <a href="{% url 'category_detail' cat.id %}" class="group relative rounded-2xl overflow-hidden h-64 shadow-xl">
-            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition z-10"></div>
-            <img src="{{ cat.image.url }}"
-                class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
-
-            <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent z-20">
-                <h3
-                    class="text-2xl font-bold text-white transform translate-y-2 group-hover:translate-y-0 transition duration-300">
-                    {{ cat.name }}
-                </h3>
-                <p
-                    class="text-gray-300 text-sm opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition duration-300 delay-75">
-                    View {{ cat.name }} Collection &rarr;
-                </p>
+                <!-- Product Row (Horizontal Scroll) -->
+                <div class="swiper productSwiper !overflow-visible w-full">
+                    <div class="swiper-wrapper">
+                        {% for prod in nonveg_offers %}
+                        <div class="swiper-slide !w-[300px] md:!w-[350px]">
+                            <div
+                                class="bg-[#111111] rounded-[2rem] p-6 border border-white/5 hover:border-red-500/30 transition duration-500 shadow-2xl">
+                                <div class="flex gap-6 items-center">
+                                    <div class="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-white/10">
+                                        <img src="{{ prod.product_image.url }}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="text-xl font-bold text-white truncate w-40">{{ prod.name }}</h3>
+                                        <div class="flex items-end gap-2 mt-2">
+                                            <span class="text-2xl font-black text-red-500">
+                                                ₹{{ prod.selling_price|floatformat:0 }}</span>
+                                            <span class="text-xs text-gray-600 line-through font-bold mb-1">
+                                                ₹{{ prod.original_price }}</span>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'add_to_cart' prod.id %}"
+                                        class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white hover:scale-110 transition shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-        </a>
-        {% endfor %}
+        </div>
+    </div>
+    <div class="swiper-pagination"></div>
+</div>
+
+
+<!-- CATEGORY FILTER BAR -->
+<div class="relative mb-16 px-4">
+    <!-- Decorative Glow Background for Filter Bar -->
+    <div
+        class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-32 bg-indigo-600/5 blur-[100px] -z-10 pointer-events-none">
+    </div>
+
+    <div class="overflow-x-auto no-scrollbar pb-6">
+        <div class="flex items-center gap-6 min-w-max px-2">
+            <button onclick="filterCategory('all')" id="cat-all"
+                class="filter-pill px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 bg-indigo-600 text-white shadow-[0_0_30px_rgba(79,70,229,0.4)] border border-indigo-400/20 backdrop-blur-md">
+                All Items
+            </button>
+            <button onclick="filterCategory('special')" id="cat-special"
+                class="filter-pill px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-white bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-all duration-500 backdrop-blur-md">
+                Special Offer
+            </button>
+            {% for cat in categories %}
+            <button onclick="filterCategory('{{ cat.id }}')" id="cat-{{ cat.id }}"
+                class="filter-pill px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-white bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-all duration-500 backdrop-blur-md">
+                {{ cat.name }}
+            </button>
+            {% endfor %}
+        </div>
     </div>
 </div>
 
+<!-- PRODUCT GRID -->
+<div id="product-grid"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 px-4 mb-32 max-w-7xl mx-auto relative">
+    <!-- Mesh Glow -->
+    <div class="absolute -top-40 -left-40 w-80 h-80 bg-red-600/5 blur-[120px] -z-10 pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-80 h-80 bg-indigo-600/5 blur-[120px] -z-10 pointer-events-none"></div>
+
+    {% for prod in all_products %}
+    <div class="product-card group bg-[#0a0a0a] rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-indigo-500/40 transition-all duration-700 hover:shadow-[0_0_50px_rgba(79,70,229,0.15)]"
+        data-category="{{ prod.category.id }}"
+        data-special="{% if prod in special_offers %}true{% else %}false{% endif %}"
+        style="--accent-color: {% if prod.is_veg %}34, 197, 94{% else %}220, 38, 38{% endif %};">
+
+        <!-- Thumbnail Container -->
+        <div class="relative h-[280px] overflow-hidden p-3 pt-6">
+            <div class="absolute top-6 left-6 z-30 flex flex-col gap-2">
+                <span
+                    class="{% if prod.is_veg %}bg-green-500/10 text-green-500 border-green-500/20{% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %} px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border backdrop-blur-md">
+                    {% if prod.is_veg %}Pure Veg{% else %}Non-Veg{% endif %}
+                </span>
+                <span
+                    class="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border backdrop-blur-md">
+                    Trending
+                </span>
+            </div>
+
+            <!-- Category Specific Visual Bar -->
+            <div
+                class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent z-20 group-hover:via-indigo-500 transition-all duration-700">
+            </div>
+
+            <img src="{{ prod.product_image.url }}"
+                class="w-full h-full object-cover rounded-[1.8rem] transform group-hover:scale-105 group-hover:rotate-1 transition duration-[1.5s] ease-out shadow-2xl">
+
+            <!-- Add to Cart Hover Reveal -->
+            <div
+                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center backdrop-blur-sm z-25 m-3 rounded-[1.8rem]">
+                <a href="{% url 'add_to_cart' prod.id %}"
+                    class="bg-white text-black px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:scale-110 transition active:scale-95 shadow-2xl">
+                    Instant Add
+                </a>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="p-8 pt-4">
+            <div class="mb-4">
+                <span class="text-[9px] font-black text-indigo-500/80 uppercase tracking-[0.3em] block mb-2">
+                    {{ prod.category.name }}</span>
+                <h3
+                    class="text-2xl font-black text-white italic tracking-tighter transition duration-500 truncate group-hover:text-indigo-400">
+                    {{ prod.name }}</h3>
+            </div>
+
+            <div class="flex items-end justify-between border-t border-white/5 pt-6">
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-600 font-bold line-through mb-1">
+                       ₹{{ prod.original_price }}</span>
+                    <span class="text-4xl font-black text-white tracking-tighter">
+                        <span class="text-indigo-500 text-lg mr-1 font-bold">₹</span>
+                        {{ prod.selling_price|floatformat:0 }}
+                    </span>
+                </div>
+
+                <a href="{% url 'add_to_cart' prod.id %}"
+                    class="relative w-14 h-14 bg-white/5 hover:bg-white text-white hover:text-black rounded-2xl flex items-center justify-center transition-all duration-500 border border-white/10 hover:border-white shadow-xl group/btn overflow-hidden">
+                    <div
+                        class="absolute inset-0 bg-indigo-600 scale-0 group-hover/btn:scale-100 transition-transform duration-500">
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 relative z-10 group-hover/btn:text-white"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<!-- Swiper.js & Logic -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-    function filterProducts(type) {
-        const products = document.querySelectorAll('.product-card');
-        const btns = ['btn-all', 'btn-veg', 'btn-nonveg'];
-        const noMsg = document.getElementById('no-products-msg');
-        let visibleCount = 0;
+    // Initialize Main Hero Swiper (2 Vertical Slides)
+    const mainHeroSwiper = new Swiper('.mainHeroSwiper', {
+        direction: 'horizontal',
+        loop: true,
+        autoplay: { delay: 5000, disableOnInteraction: true },
+        pagination: { el: '.swiper-pagination', clickable: true },
+        effect: 'slide',
+    });
 
-        // Reset Buttons
-        btns.forEach(id => {
-            document.getElementById(id).className = "px-6 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
-        });
+    // Initialize Nested Product Swipers
+    const productSwipers = new Swiper('.productSwiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 20,
+        freeMode: true,
+        grabCursor: true,
+        nested: true, // Crucial for swiper inside swiper
+    });
 
-        // Active Button Style
-        document.getElementById(`btn-${type}`).className = "px-6 py-2 rounded-lg text-sm font-bold bg-red-600 text-white shadow-lg transition-all";
+    // Category Filter Logic
+    function filterCategory(catId) {
+        const pills = document.querySelectorAll('.filter-pill');
+        const cards = document.querySelectorAll('.product-card');
 
-        products.forEach(card => {
-            const isVeg = card.getAttribute('data-veg') === 'true';
-
-            if (type === 'all') {
-                card.classList.remove('hidden');
-                visibleCount++;
-            } else if (type === 'veg') {
-                if (isVeg) {
-                    card.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
-                }
-            } else if (type === 'nonveg') {
-                if (!isVeg) {
-                    card.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
-                }
+        // Update Pills
+        pills.forEach(pill => {
+            if (pill.id === `cat-${catId}`) {
+                pill.className = "filter-pill px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 bg-indigo-600 text-white shadow-[0_0_30px_rgba(79,70,229,0.4)] border border-indigo-400/20 backdrop-blur-md";
+            } else {
+                pill.className = "filter-pill px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-white bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-all duration-500 backdrop-blur-md";
             }
         });
 
-        // Show/Hide Empty Message
-        if (visibleCount === 0) {
-            noMsg.classList.remove('hidden');
-        } else {
-            noMsg.classList.add('hidden');
-        }
+        // Filter Cards
+        cards.forEach(card => {
+            card.style.display = 'none';
+            const productCatId = card.getAttribute('data-category');
+            const isSpecial = card.getAttribute('data-special') === 'true';
+
+            if (catId === 'all') {
+                card.style.display = 'block';
+            } else if (catId === 'special') {
+                if (isSpecial) card.style.display = 'block';
+            } else if (productCatId === catId) {
+                card.style.display = 'block';
+            }
+        });
     }
 </script>
+
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .swiper-pagination-bullet {
+        background: white !important;
+        opacity: 0.5;
+    }
+
+    .swiper-pagination-bullet-active {
+        background: #ef4444 !important;
+        opacity: 1;
+        width: 30px;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
 {% endblock %}

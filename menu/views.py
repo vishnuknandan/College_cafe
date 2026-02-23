@@ -15,7 +15,7 @@ import string
 
 from django.contrib.auth.models import User
 from .forms import UserRegisterForm, UserLoginForm, UserOrderForm, ReviewForm, UserUpdateForm, ProfileUpdateForm
-from .models import Category, Product, Cart, Order, Review, Profile, EmailOTP
+from .models import Category, Product, Cart, Order, Review, Profile, EmailOTP, Banner
 
 
 # ------------------------ LOGIN REQUIRED DECORATOR ------------------------
@@ -190,11 +190,22 @@ class HomeView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Offer Zone: Products with discount > 50% (selling price <= 50% of original price)
-        context['offer_products'] = Product.objects.filter(
+        # Offer Zone: Products with discount >= 50%
+        offer_products = Product.objects.filter(
             original_price__gt=0,
             selling_price__lte=F('original_price') * 0.5
         )
+        
+        context['veg_offers'] = offer_products.filter(is_veg=True)
+        context['nonveg_offers'] = offer_products.filter(is_veg=False)
+        context['special_offers'] = offer_products # For the "Special Offer" filter tab
+        
+        # All Active Products for the main grid
+        context['all_products'] = Product.objects.filter(quantity__gt=0)
+        
+        # Fetch Banners for Swipeable Slider
+        context['banners'] = Banner.objects.filter(active=True)
+        
         return context
 
 

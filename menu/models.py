@@ -113,6 +113,18 @@ class EmailOTP(models.Model):
         return f"OTP for {self.email}"
 
 
+# ------------------------------ BANNER ------------------------------
+
+class Banner(models.Model):
+    title = models.CharField(max_length=200, null=True, blank=True)
+    image = models.ImageField(upload_to='banners', null=True)
+    is_veg = models.BooleanField(default=True, help_text="Checked for Veg, Unchecked for Non-Veg")
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{'Veg' if self.is_veg else 'Non-Veg'} Banner - {self.title or self.id}"
+
+
 # Create profile automatically when user is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
