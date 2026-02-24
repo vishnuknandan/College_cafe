@@ -15,7 +15,7 @@ import string
 
 from django.contrib.auth.models import User
 from .forms import UserRegisterForm, UserLoginForm, UserOrderForm, ReviewForm, UserUpdateForm, ProfileUpdateForm
-from .models import Category, Product, Cart, Order, Review, Profile, EmailOTP, Banner
+from .models import Category, Product, Cart, Order, Review, Profile, EmailOTP, Banner, Favorite
 
 
 # ------------------------ LOGIN REQUIRED DECORATOR ------------------------
@@ -203,6 +203,12 @@ class HomeView(ListView):
         # All Active Products for the main grid
         context['all_products'] = Product.objects.filter(quantity__gt=0)
         
+        # Get user favorites if authenticated
+        if self.request.user.is_authenticated:
+            context['user_favorites'] = Favorite.objects.filter(user=self.request.user).values_list('product_id', flat=True)
+        else:
+            context['user_favorites'] = []
+        
         # Fetch Banners for Swipeable Slider
         context['banners'] = Banner.objects.filter(active=True)
         
@@ -262,7 +268,36 @@ class AddToCartView(View):
             cart_item.save()
 
         messages.success(request, f"{qty} item(s) added to cart!")
-        return redirect("cart")
+        
+        # If the user came from a specific page, redirect back there, otherwise default to home or cart
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+# ------------------------ FAVORITES FUNCTIONALITY ------------------------
+
+@method_decorator(signin_required, name="dispatch")
+class AddToFavoriteView(View):
+    def get(self, request, pk):
+        product = get_object_or_404(Product, id=pk)
+        Favorite.objects.get_or_create(user=request.user, product=product)
+        messages.success(request, f"{product.name} added to favorites!")
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+@method_decorator(signin_required, name="dispatch")
+class RemoveFromFavoriteView(View):
+    def get(self, request, pk):
+        product = get_object_or_404(Product, id=pk)
+        Favorite.objects.filter(user=request.user, product=product).delete()
+        messages.warning(request, f"{product.name} removed from favorites.")
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+@method_decorator(signin_required, name="dispatch")
+class FavoritesListView(View):
+    def get(self, request):
+        favorites = Favorite.objects.filter(user=request.user).select_related('product')
+        return render(request, "menu/favorites.html", {"favorites": favorites})
 
 
 @method_decorator(signin_required, name="dispatch")

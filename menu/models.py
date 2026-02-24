@@ -125,6 +125,20 @@ class Banner(models.Model):
         return f"{'Veg' if self.is_veg else 'Non-Veg'} Banner - {self.title or self.id}"
 
 
+# ------------------------------ FAVORITE ------------------------------
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name}"
+
+
 # Create profile automatically when user is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

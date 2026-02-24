@@ -7,7 +7,7 @@ from .views import (
     IncreaseQty, DecreaseQty,
     BuyNowView, UserOrdersView, CheckoutView,
     SearchView, order_success, AddReviewView, ProfileView,
-    DeleteAccountView, VerifyOTPView
+    DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView
 )
 
 urlpatterns = [
@@ -60,6 +60,11 @@ urlpatterns = [
 
     # ---------------- BUY NOW ----------------
     path("buy/<int:pk>/", BuyNowView.as_view(), name="buy"),
+
+    # ---------------- FAVORITES ----------------
+    path("favorites/", FavoritesListView.as_view(), name="favorites"),
+    path("favorite/add/<int:pk>/", AddToFavoriteView.as_view(), name="add_to_favorite"),
+    path("favorite/remove/<int:pk>/", RemoveFromFavoriteView.as_view(), name="remove_from_favorite"),
 
     # ---------------- ORDERS ----------------
     path("my-orders/", UserOrdersView.as_view(), name="my_orders"),

@@ -19,38 +19,63 @@
 <!-- Product Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-20 fade-in">
     {% for prod in data %}
-    <div class="glass rounded-2xl overflow-hidden group relative hover:border-red-500/50 transition duration-300">
+    <div
+        class="product-card group bg-[#0a0a0a] rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-red-500/40 transition-all duration-700 hover:shadow-[0_0_50px_rgba(239,68,68,0.15)]">
 
         <!-- Image -->
-        <a href="{% url 'product_detail' prod.id %}" class="block overflow-hidden h-64 relative">
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition z-10"></div>
-            {% if prod.product_image %}
-            <img src="{{ prod.product_image.url }}"
-                class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-            {% else %}
-            <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">No Image</div>
-            {% endif %}
-        </a>
+        <div class="relative h-[280px] overflow-hidden p-3 pt-6">
+            <a href="{% url 'product_detail' prod.id %}" class="block w-full h-full">
+                {% if prod.product_image %}
+                <img src="{{ prod.product_image.url }}"
+                    class="w-full h-full object-cover rounded-[1.8rem] transform group-hover:scale-105 transition duration-[1.5s] ease-out">
+                {% else %}
+                <div
+                    class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[1.8rem] flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                {% endif %}
+            </a>
+
+            <!-- Compact Action Buttons -->
+            <div
+                class="absolute bottom-4 left-4 right-4 z-30 flex gap-2 translate-y-20 group-hover:translate-y-0 transition-transform duration-500">
+                <a href="{% url 'buy' prod.id %}"
+                    class="flex-grow bg-white text-black py-3 rounded-[1.2rem] text-[9px] font-black uppercase tracking-widest text-center hover:bg-white transition-all shadow-2xl shadow-black/50">
+                    Buy Now
+                </a>
+                <a href="{% url 'add_to_cart' prod.id %}"
+                    class="w-12 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-[1.2rem] flex items-center justify-center hover:bg-white hover:text-black transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                    </svg>
+                </a>
+            </div>
+        </div>
 
         <!-- Content -->
-        <div class="p-5">
-            <h3 class="text-lg font-bold text-white truncate mb-1 group-hover:text-red-400 transition">{{ prod.name }}
+        <div class="p-8 pt-4">
+            <h3 class="text-xl font-bold text-white truncate mb-1 group-hover:text-red-400 transition">{{ prod.name }}
             </h3>
 
-            <div class="flex items-center justify-between mt-3">
+            <div class="flex items-end justify-between border-t border-white/5 pt-6">
                 <div class="flex flex-col">
-                    {% if prod.selling_price < prod.original_price %} <span class="text-xs text-gray-400 line-through">
-                        ₹{{ prod.original_price }}</span>
+                    {% if prod.selling_price < prod.original_price %} <span
+                        class="text-[10px] text-gray-500 line-through">₹{{ prod.original_price }}</span>
                         {% endif %}
-                        <span class="text-xl font-bold text-red-500">₹{{ prod.selling_price }}</span>
+                        <span class="text-3xl font-black text-white">₹{{ prod.selling_price|floatformat:0 }}</span>
                 </div>
 
-                <a href="{% url 'add_to_cart' prod.id %}"
-                    class="bg-white/10 hover:bg-red-600 text-white p-2.5 rounded-xl transition duration-300 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                <a href="{% url 'buy' prod.id %}"
+                    class="w-12 h-12 bg-white/5 hover:bg-white text-white hover:text-black rounded-xl flex items-center justify-center transition-all duration-500 border border-white/10 active:scale-90">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </a>
             </div>
