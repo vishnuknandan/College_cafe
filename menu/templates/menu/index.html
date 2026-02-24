@@ -328,7 +328,7 @@
             <!-- Badges -->
             <div class="absolute top-6 left-6 z-30 flex flex-col gap-2">
                 <span
-                    class="{% if prod.is_veg %}bg-green-500/10 text-green-500 border-green-500/20{% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %} px-3 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest border backdrop-blur-md">
+                    class="{% if prod.is_veg %}bg-green-500/10 text-green-500 border-green-500/20{% else %}bg-white-500/10 text-white-500 border-white-500/20{% endif %} px-3 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest border backdrop-blur-md">
                     {% if prod.is_veg %}🌿 Veg{% else %}🍗 Non-Veg{% endif %}
                 </span>
                 {% if prod in special_offers %}
