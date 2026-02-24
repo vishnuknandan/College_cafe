@@ -232,7 +232,17 @@ class CategoryDetailView(View):
 class ProductDetailView(View):
     def get(self, request, pk):
         product = Product.objects.get(id=pk)
-        return render(request, "menu/p_detail.html", {"data": product})
+        top_reviews = Review.objects.filter(product=product).select_related('user').order_by('-rating', '-date')[:5]
+        similar_products = Product.objects.filter(
+            category=product.category,
+            quantity__gt=0
+        ).exclude(id=product.id)[:8]
+
+        return render(request, "menu/p_detail.html", {
+            "data": product,
+            "top_reviews": top_reviews,
+            "similar_products": similar_products,
+        })
 
 
 # ------------------------ CART FUNCTIONALITY ------------------------
