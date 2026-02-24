@@ -282,6 +282,12 @@ class AddToFavoriteView(View):
     def get(self, request, pk):
         product = get_object_or_404(Product, id=pk)
         Favorite.objects.get_or_create(user=request.user, product=product)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": True,
+                "favorited": True,
+                "product_id": product.id,
+            })
         messages.success(request, f"{product.name} added to favorites!")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
 
@@ -291,6 +297,12 @@ class RemoveFromFavoriteView(View):
     def get(self, request, pk):
         product = get_object_or_404(Product, id=pk)
         Favorite.objects.filter(user=request.user, product=product).delete()
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": True,
+                "favorited": False,
+                "product_id": product.id,
+            })
         messages.warning(request, f"{product.name} removed from favorites.")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
 
