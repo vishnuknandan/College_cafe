@@ -30,20 +30,46 @@
                             placeholder="Enter your full address here..."></textarea>
                     </div>
 
-                    <!-- Payment Method (Visual Only for now) -->
+                    <!-- Payment Method -->
                     <div class="mb-8">
                         <label class="block text-gray-400 text-sm font-bold mb-4 uppercase tracking-wider">Payment
                             Method</label>
+                        <input type="hidden" name="payment_method" id="checkout_payment_method" value="COD">
                         <div class="grid grid-cols-2 gap-4">
-                            <div
-                                class="border border-red-500 bg-red-500/10 rounded-xl p-4 flex items-center gap-3 cursor-pointer">
-                                <div class="w-4 h-4 rounded-full bg-red-500 border border-red-500"></div>
-                                <span class="text-white font-bold">Cash on Delivery</span>
+                            <!-- COD -->
+                            <div id="co-cod" onclick="checkoutPayment('COD')"
+                                class="border-2 border-red-500 bg-red-500/10 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all">
+                                <div class="w-4 h-4 rounded-full bg-red-500 border-2 border-red-500" id="co-cod-dot">
+                                </div>
+                                <div>
+                                    <span class="text-white font-bold text-sm">Cash on Delivery</span>
+                                    <p class="text-gray-400 text-xs">Pay at delivery 💵</p>
+                                </div>
                             </div>
-                            <div
-                                class="border border-gray-700 bg-black/20 rounded-xl p-4 flex items-center gap-3 opacity-50 cursor-not-allowed">
-                                <div class="w-4 h-4 rounded-full border border-gray-500"></div>
-                                <span class="text-gray-400">Online Payment (Coming Soon)</span>
+                            <!-- GPay -->
+                            <div id="co-gpay" onclick="checkoutPayment('GPay')"
+                                class="border-2 border-gray-700 bg-black/20 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all">
+                                <div class="w-4 h-4 rounded-full border-2 border-gray-500 bg-transparent"
+                                    id="co-gpay-dot"></div>
+                                <div>
+                                    <span class="text-white font-bold text-sm">GPay / UPI</span>
+                                    <p class="text-gray-400 text-xs">Pay online 📲</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- GPay details -->
+                        <div id="co-gpay-details"
+                            class="hidden mt-4 bg-gray-800/60 rounded-xl p-4 border border-gray-700">
+                            <p class="text-gray-300 font-semibold text-sm mb-2">📱 Scan & Pay</p>
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white p-2 rounded-lg w-20 h-20 flex-shrink-0">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=upi://pay?pa=lol2025cafe@oksbi&pn=LOLCafe&cu=INR"
+                                        alt="QR" class="w-full h-full">
+                                </div>
+                                <div class="text-sm text-gray-300 space-y-1">
+                                    <p>UPI: <span class="text-white font-mono">lol2025cafe@oksbi</span></p>
+                                    <p class="text-yellow-400 text-xs">⚠️ Place order after payment</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -62,6 +88,7 @@
                             </svg>
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -98,4 +125,31 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function checkoutPayment(method) {
+        var codCard = document.getElementById('co-cod');
+        var gpayCard = document.getElementById('co-gpay');
+        var codDot = document.getElementById('co-cod-dot');
+        var gpayDot = document.getElementById('co-gpay-dot');
+        var gpayDetails = document.getElementById('co-gpay-details');
+        var input = document.getElementById('checkout_payment_method');
+        input.value = method;
+        if (method === 'COD') {
+            codCard.className = 'border-2 border-red-500 bg-red-500/10 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all';
+            codDot.className = 'w-4 h-4 rounded-full bg-red-500 border-2 border-red-500';
+            gpayCard.className = 'border-2 border-gray-700 bg-black/20 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all';
+            gpayDot.className = 'w-4 h-4 rounded-full border-2 border-gray-500 bg-transparent';
+            gpayDetails.classList.add('hidden');
+        } else {
+            gpayCard.className = 'border-2 border-blue-500 bg-blue-500/10 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all';
+            gpayDot.className = 'w-4 h-4 rounded-full bg-blue-500 border-2 border-blue-500';
+            codCard.className = 'border-2 border-gray-700 bg-black/20 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all';
+            codDot.className = 'w-4 h-4 rounded-full border-2 border-gray-500 bg-transparent';
+            gpayDetails.classList.remove('hidden');
+        }
+    }
+</script>
 {% endblock %}

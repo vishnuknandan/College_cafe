@@ -7,7 +7,9 @@ from .views import (
     IncreaseQty, DecreaseQty,
     BuyNowView, UserOrdersView, CheckoutView,
     SearchView, order_success, AddReviewView, ProfileView,
-    DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView
+    DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView,
+    calculation,
+    ProfilePasswordOTPRequestView, ProfilePasswordOTPVerifyView, ProfileNewPasswordView,
 )
 
 urlpatterns = [
@@ -81,6 +83,14 @@ urlpatterns = [
     path("about/", auth_views.TemplateView.as_view(template_name="menu/about.html"), name="about_us"),
     path("contact/", auth_views.TemplateView.as_view(template_name="menu/contact.html"), name="contact_us"),
     path("delete-account/", DeleteAccountView.as_view(), name="delete_account"),
+
+    # ---------------- PROFILE PASSWORD RESET (OTP) ----------------
+    path("profile/change-password/", ProfilePasswordOTPRequestView.as_view(), name="profile_pwd_otp_request"),
+    path("profile/change-password/verify/", ProfilePasswordOTPVerifyView.as_view(), name="profile_otp_verify"),
+    path("profile/change-password/new/", ProfileNewPasswordView.as_view(), name="profile_new_password"),
+
+    # ---------------- CALCULATION DASHBOARD ----------------
+    path("calculation/", calculation, name="calculation"),
 ]
 
 

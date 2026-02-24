@@ -61,10 +61,12 @@ class Order(models.Model):
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
     )
-    order_sts = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting for accept')
+    order_sts = models.CharField(max_length=50, choices=STATUS_CHOICES, default='waiting for accept')
     address = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    
+    payment_method = models.CharField(max_length=50, default='COD')  # COD or GPay
+    status_updated_at = models.DateTimeField(null=True, blank=True)  # For auto-status progression
+
     # Razorpay fields (Preserving these as they were in original file, likely needed)
     razorpay_order_id = models.CharField(max_length=200, null=True, blank=True)
     razorpay_payment_id = models.CharField(max_length=200, null=True, blank=True)

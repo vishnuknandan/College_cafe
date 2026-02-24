@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import F
+from django.db.models import F, Sum, Q
 from django.views import View
 from django.views.generic import ListView
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -10,6 +10,8 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils import timezone
+from datetime import datetime, timedelta
 import random
 import string
 
@@ -397,14 +399,17 @@ class CheckoutView(View):
                 c_item.item.save()
 
                 # Create Order
+                payment_method = request.POST.get('payment_method', 'COD')
                 total += c_item.item.selling_price * c_item.qty
                 Order.objects.create(
                     orderitem=c_item.item,
                     customer=request.user,
                     qty=c_item.qty,
                     price=c_item.item.selling_price * c_item.qty,
-                    order_sts="Pending",
-                    tracking_no=trackno
+                    order_sts='waiting for accept',
+                    tracking_no=trackno,
+                    payment_method=payment_method,
+                    status_updated_at=timezone.now()
                 )
             
             # Clear cart
@@ -412,7 +417,7 @@ class CheckoutView(View):
 
             # Send Email Notification
             subject = f"Order Placed Successfully - {trackno}"
-            message = f"Hi {request.user.username},\n\nYour order has been placed successfully.\nOrder ID: {trackno}\nTotal Amount: ₹{total}\n\nThank you for ordering with us!\n\nUse 'My Orders' to track status."
+            message = f"Hi {request.user.username},\n\nYour order has been placed successfully.\nOrder ID: {trackno}\nPayment: {request.POST.get('payment_method', 'COD')}\nTotal Amount: \u20b9{total}\n\nThank you for ordering with us!\n\nUse 'My Orders' to track status."
             try:
                 send_mail(subject, message, settings.EMAIL_HOST_USER if hasattr(settings, 'EMAIL_HOST_USER') else 'admin@foodspot.com', [request.user.email])
             except Exception as e:
@@ -485,19 +490,22 @@ class BuyNowView(View):
             product.save()
 
             # Create Order
+            payment_method = request.POST.get('payment_method', 'COD')
             current_total = product.selling_price * qty
             Order.objects.create(
                 orderitem=product,
                 customer=request.user,
                 price=current_total,
-                order_sts="Pending",
+                order_sts='waiting for accept',
                 qty=qty,
-                tracking_no=trackno
+                tracking_no=trackno,
+                payment_method=payment_method,
+                status_updated_at=timezone.now()
             )
 
             # Send Email Notification
             subject = f"Order Placed Successfully - {trackno}"
-            message = f"Hi {request.user.username},\n\nYour order for {qty}x {product.name} has been placed successfully.\nOrder ID: {trackno}\nTotal Amount: ₹{current_total}\n\nThank you for ordering with us!"
+            message = f"Hi {request.user.username},\n\nYour order for {qty}x {product.name} has been placed successfully.\nOrder ID: {trackno}\nPayment: {payment_method}\nTotal Amount: \u20b9{current_total}\n\nThank you for ordering with us!"
             try:
                 send_mail(subject, message, settings.EMAIL_HOST_USER if hasattr(settings, 'EMAIL_HOST_USER') else 'admin@foodspot.com', [request.user.email])
             except Exception as e:
@@ -608,5 +616,189 @@ print("Order Success")
 
 
 def calculation(request):
-    
-    return render(request, "menu/calculation.html")
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied. Admins only.")
+        return redirect('home')
+
+    # --- Date Filter ---
+    filter_type = request.GET.get('filter', 'today')
+    now = timezone.now()
+
+    if filter_type == 'today':
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now
+        label = 'Today'
+    elif filter_type == 'week':
+        start_date = now - timedelta(days=now.weekday())
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now
+        label = 'This Week'
+    elif filter_type == 'month':
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = now
+        label = 'This Month'
+    elif filter_type == 'year':
+        start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = now
+        label = 'This Year'
+    elif filter_type == 'custom':
+        try:
+            start_date = timezone.make_aware(datetime.strptime(request.GET.get('start_date', ''), '%Y-%m-%d'))
+            end_date = timezone.make_aware(datetime.strptime(request.GET.get('end_date', ''), '%Y-%m-%d')).replace(hour=23, minute=59, second=59)
+            label = f"{request.GET.get('start_date')} to {request.GET.get('end_date')}"
+        except (ValueError, TypeError):
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = now
+            label = 'Today (Invalid range)'
+    else:
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now
+        label = 'Today'
+
+    # --- Query Orders in Range ---
+    orders_in_range = Order.objects.filter(date_order__gte=start_date, date_order__lte=end_date)
+
+    total_orders = orders_in_range.count()
+    delivered_orders = orders_in_range.filter(order_sts='Delivered')
+    cancelled_orders = orders_in_range.filter(order_sts='Cancelled')
+    pending_orders = orders_in_range.exclude(order_sts__in=['Delivered', 'Cancelled'])
+
+    total_revenue = delivered_orders.aggregate(total=Sum('price'))['total'] or 0
+    cancelled_revenue = cancelled_orders.aggregate(total=Sum('price'))['total'] or 0
+
+    # --- All-time stats ---
+    all_orders = Order.objects.all()
+    all_delivered = Order.objects.filter(order_sts='Delivered')
+    all_revenue = all_delivered.aggregate(total=Sum('price'))['total'] or 0
+
+    context = {
+        'filter_type': filter_type,
+        'label': label,
+        'total_orders': total_orders,
+        'delivered_count': delivered_orders.count(),
+        'cancelled_count': cancelled_orders.count(),
+        'pending_count': pending_orders.count(),
+        'total_revenue': total_revenue,
+        'cancelled_revenue': cancelled_revenue,
+        'all_revenue': all_revenue,
+        'all_time_orders': all_orders.count(),
+        'start_date': request.GET.get('start_date', ''),
+        'end_date': request.GET.get('end_date', ''),
+        'recent_delivered': delivered_orders.select_related('orderitem', 'customer').order_by('-date_order')[:10],
+    }
+    return render(request, 'menu/calculation.html', context)
+
+
+# ------------------------ PROFILE PASSWORD RESET VIA OTP ------------------------
+
+@method_decorator(signin_required, name='dispatch')
+class ProfilePasswordOTPRequestView(View):
+    """Step 1: Send OTP to logged-in user's email"""
+    def get(self, request):
+        return render(request, 'menu/profile_otp_request.html', {'email': request.user.email})
+
+    def post(self, request):
+        email = request.user.email
+        if not email:
+            messages.error(request, 'No email associated with your account.')
+            return redirect('profile')
+
+        otp_code = str(random.randint(100000, 999999))
+        EmailOTP.objects.filter(email=email).delete()
+        EmailOTP.objects.create(email=email, otp=otp_code)
+
+        request.session['pwd_reset_email'] = email
+
+        subject = 'LOL Cafe - Password Change OTP'
+        message = (
+            f'Hi {request.user.username},\n\n'
+            f'Your password change OTP is: {otp_code}\n\n'
+            f'This code is valid for 10 minutes.\n'
+            f'If you did not request this, please ignore this email.\n\n'
+            f'- LOL Cafe Team'
+        )
+        try:
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            messages.success(request, f'OTP sent to {email}. Please check your inbox.')
+        except Exception as e:
+            print(f'OTP send failed: {e}')
+            messages.error(request, 'Failed to send OTP. Please try again.')
+            return render(request, 'menu/profile_otp_request.html', {'email': email})
+
+        return redirect('profile_otp_verify')
+
+
+@method_decorator(signin_required, name='dispatch')
+class ProfilePasswordOTPVerifyView(View):
+    """Step 2: Verify the OTP"""
+    def get(self, request):
+        if not request.session.get('pwd_reset_email'):
+            messages.error(request, 'Session expired. Please try again.')
+            return redirect('profile_pwd_otp_request')
+        return render(request, 'menu/profile_otp_verify.html')
+
+    def post(self, request):
+        email = request.session.get('pwd_reset_email')
+        if not email:
+            messages.error(request, 'Session expired. Please try again.')
+            return redirect('profile_pwd_otp_request')
+
+        digits = [request.POST.get(f'otp_{i}', '').strip() for i in range(1, 7)]
+        entered_otp = ''.join(digits)
+
+        try:
+            otp_record = EmailOTP.objects.filter(email=email).latest('created_at')
+        except EmailOTP.DoesNotExist:
+            messages.error(request, 'OTP not found. Please try again.')
+            return redirect('profile_pwd_otp_request')
+
+        if otp_record.is_expired():
+            otp_record.delete()
+            messages.error(request, 'OTP has expired. Please request a new one.')
+            return redirect('profile_pwd_otp_request')
+
+        if entered_otp != otp_record.otp:
+            messages.error(request, 'Invalid OTP. Please try again.')
+            return render(request, 'menu/profile_otp_verify.html')
+
+        # OTP valid — allow password change
+        otp_record.delete()
+        request.session['pwd_otp_verified'] = True
+        return redirect('profile_new_password')
+
+
+@method_decorator(signin_required, name='dispatch')
+class ProfileNewPasswordView(View):
+    """Step 3: Set new password after OTP verified"""
+    def get(self, request):
+        if not request.session.get('pwd_otp_verified'):
+            messages.error(request, 'Please verify OTP first.')
+            return redirect('profile_pwd_otp_request')
+        return render(request, 'menu/profile_new_password.html')
+
+    def post(self, request):
+        if not request.session.get('pwd_otp_verified'):
+            messages.error(request, 'Please verify OTP first.')
+            return redirect('profile_pwd_otp_request')
+
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        if not new_password or len(new_password) < 6:
+            messages.error(request, 'Password must be at least 6 characters.')
+            return render(request, 'menu/profile_new_password.html')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'menu/profile_new_password.html')
+
+        request.user.set_password(new_password)
+        request.user.save()
+        update_session_auth_hash(request, request.user)  # Keep user logged in
+
+        # Cleanup session
+        request.session.pop('pwd_reset_email', None)
+        request.session.pop('pwd_otp_verified', None)
+
+        messages.success(request, '✅ Password changed successfully!')
+        return redirect('profile')
