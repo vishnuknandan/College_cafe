@@ -8,6 +8,11 @@
     <p class="text-gray-400 text-center max-w-2xl mx-auto">
         Your personally curated collection of premium gaming fuel. Ready for action whenever you are.
     </p>
+
+     <a href="{% url 'home' %}"
+            class="bg-white-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition transform hover:scale-105">
+            Back to Home
+        </a>
 </div>
 
 {% if favorites %}
@@ -71,8 +76,8 @@
         <!-- Info -->
         <div class="p-8 pt-4">
             <div class="mb-4">
-                <span class="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-2">{{
-                    prod.category.name }}</span>
+                <span class="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-2">
+                    {{ prod.category.name }}</span>
                 <h3
                     class="text-2xl font-black text-white italic tracking-tighter truncate group-hover:text-red-400 transition duration-500">
                     {{ prod.name }}</h3>
@@ -80,8 +85,8 @@
 
             <div class="flex items-end justify-between border-t border-white/5 pt-6">
                 <div>
-                    <span class="text-[10px] text-gray-600 font-bold line-through mb-1">₹{{ prod.original_price
-                        }}</span>
+                    <span class="text-[10px] text-gray-600 font-bold line-through mb-1">
+                        ₹{{ prod.original_price }}</span>
                     <span class="text-4xl font-black text-white tracking-tighter">
                         <span class="text-red-500 text-lg mr-1 font-bold">₹</span>{{ prod.selling_price|floatformat:0 }}
                     </span>

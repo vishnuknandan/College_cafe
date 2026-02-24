@@ -24,6 +24,7 @@ class Product(models.Model):
     quantity = models.IntegerField(null=False, blank=False, default=0)
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
+    # calories = models.TextField(null=True, blank=True)
     description = models.TextField(max_length=300, null=False)
     is_veg = models.BooleanField(default=False)
 
@@ -54,12 +55,13 @@ class Order(models.Model):
     qty = models.IntegerField(default=1) # Kept this to avoid breaking Buy logic
     date_order = models.DateTimeField(auto_now_add=True)
     STATUS_CHOICES = (
-        ('Pending', 'Pending'),
-        ('Out for Delivery', 'Out for Delivery'),
+        ('waiting for accept', 'waiting for accept'),
+        ('accepted and cooking', 'accepted and cooking'),
+        ('ready to pickup', 'ready to pickup'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
     )
-    order_sts = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    order_sts = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting for accept')
     address = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     
