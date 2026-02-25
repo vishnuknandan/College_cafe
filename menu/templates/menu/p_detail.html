@@ -116,7 +116,27 @@
                 function addToCart(e) {
                     e.preventDefault();
                     const qty = document.getElementById('qty-input').value;
-                    window.location.href = "{% url 'add_to_cart' data.id %}?qty=" + qty;
+                    const url = "{% url 'add_to_cart' data.id %}?qty=" + qty;
+
+                    // Use the global AJAX handler from base.html if available,
+                    // otherwise fall back to page navigation.
+                    fetch(url, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            // Reuse the global toast & badge helpers defined in base.html
+                            if (typeof showToast === 'function') showToast(data.message, data.success);
+                            if (data.success && typeof updateCartBadge === 'function') {
+                                updateCartBadge(data.cart_count);
+                            }
+                        })
+                        .catch(() => {
+                            // Graceful fallback — redirect if fetch somehow fails
+                            window.location.href = url;
+                        });
                 }
 
                 function buyNow(e) {

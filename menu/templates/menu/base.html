@@ -73,8 +73,12 @@
     </style>
 
     <script>
+        // Only force-reload on auth pages to prevent stale login/logout state.
+        // Skipping this on normal pages (cart, home, etc.) avoids unwanted full refreshes.
         window.addEventListener("pageshow", function (event) {
-            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            var authPaths = ['/', '/login/', '/register/', '/logout/'];
+            var isAuthPage = authPaths.indexOf(window.location.pathname) !== -1;
+            if (isAuthPage && (event.persisted || (window.performance && window.performance.navigation.type === 2))) {
                 window.location.reload();
             }
         });
@@ -260,6 +264,99 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- ── GLOBAL ADD-TO-CART AJAX INTERCEPTOR ── -->
+    <!-- Intercepts every <a href="...add-to-cart..."> click on the site.     -->
+    <!-- Fires a fetch() with the AJAX header, shows a toast, updates the    -->
+    <!-- cart badge — no full page reload needed.                             -->
+    <script>
+        (function () {
+            // ── Toast helper ──────────────────────────────────────────────────
+            function showToast(message, success) {
+                var toast = document.createElement('div');
+                toast.textContent = message;
+                toast.style.cssText = [
+                    'position:fixed', 'top:88px', 'right:24px', 'z-index:9999',
+                    'padding:14px 22px', 'border-radius:14px',
+                    'font-family:Outfit,sans-serif', 'font-size:14px', 'font-weight:700',
+                    'box-shadow:0 8px 32px rgba(0,0,0,0.5)',
+                    'backdrop-filter:blur(16px)', '-webkit-backdrop-filter:blur(16px)',
+                    'transition:opacity 0.4s ease, transform 0.4s ease',
+                    'opacity:0', 'transform:translateY(-12px)',
+                    success
+                        ? 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;'
+                        : 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;'
+                ].join(';');
+                document.body.appendChild(toast);
+                // Animate in
+                requestAnimationFrame(function () {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateY(0)';
+                });
+                // Fade out after 3 s
+                setTimeout(function () {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-12px)';
+                    setTimeout(function () { toast.remove(); }, 400);
+                }, 3000);
+            }
+
+            // ── Cart badge update ─────────────────────────────────────────────
+            function updateCartBadge(count) {
+                var badge = document.querySelector('nav a[href*="cart"] span');
+                if (count > 0) {
+                    if (badge) {
+                        badge.textContent = count;
+                    } else {
+                        // Create badge if it doesn't exist yet
+                        var cartLink = document.querySelector('nav a[href*="cart"]');
+                        if (cartLink) {
+                            var span = document.createElement('span');
+                            span.className = 'absolute -top-2 -right-2 bg-red-600 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-lg animate-bounce';
+                            span.textContent = count;
+                            cartLink.appendChild(span);
+                        }
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+
+            // ── AJAX add-to-cart fetch ────────────────────────────────────────
+            function addToCartAjax(url) {
+                fetch(url, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        showToast(data.message, data.success);
+                        if (data.success && typeof data.cart_count !== 'undefined') {
+                            updateCartBadge(data.cart_count);
+                        }
+                    })
+                    .catch(function () {
+                        showToast('Something went wrong. Please try again.', false);
+                    });
+            }
+
+            // ── Intercept all add-to-cart link clicks ────────────────────────
+            document.addEventListener('click', function (e) {
+                var link = e.target.closest('a[href]');
+                if (!link) return;
+                var href = link.getAttribute('href') || '';
+                if (href.indexOf('/add-to-cart/') === -1 && href.indexOf('/add_to_cart/') === -1) return;
+
+                e.preventDefault();
+                addToCartAjax(href);
+            });
+
+            // ── Expose helpers globally for page-specific scripts ────────────
+            window.showToast = showToast;
+            window.updateCartBadge = updateCartBadge;
+        })();
+    </script>
 
 </body>
 

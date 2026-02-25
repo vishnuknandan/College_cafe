@@ -251,7 +251,8 @@ class ProductDetailView(View):
 class AddToCartView(View):
     def get(self, request, pk):
         product = get_object_or_404(Product, id=pk)
-        
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
         try:
             qty = int(request.GET.get('qty', 1))
             if qty < 1:
@@ -261,8 +262,10 @@ class AddToCartView(View):
 
         # Stock Check
         if product.quantity < qty:
+            if is_ajax:
+                return JsonResponse({"success": False, "message": f"Only {product.quantity} items available!"})
             messages.error(request, f"Only {product.quantity} items available!")
-            return redirect("product_detail", pk=pk) # Redirect back to product
+            return redirect("product_detail", pk=pk)
 
         cart_item, created = Cart.objects.get_or_create(
             user=request.user,
@@ -271,17 +274,26 @@ class AddToCartView(View):
 
         if not created:
             if product.quantity < (cart_item.qty + qty):
-                 messages.error(request, f"Not enough stock to add {qty} more!")
-                 return redirect("cart")
+                if is_ajax:
+                    return JsonResponse({"success": False, "message": f"Not enough stock to add {qty} more!"})
+                messages.error(request, f"Not enough stock to add {qty} more!")
+                return redirect("cart")
             cart_item.qty += qty
             cart_item.save()
         else:
             cart_item.qty = qty
             cart_item.save()
 
+        cart_count = Cart.objects.filter(user=request.user).count()
+
+        if is_ajax:
+            return JsonResponse({
+                "success": True,
+                "message": f"{qty} item(s) added to cart!",
+                "cart_count": cart_count,
+            })
+
         messages.success(request, f"{qty} item(s) added to cart!")
-        
-        # If the user came from a specific page, redirect back there, otherwise default to home or cart
         return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 
