@@ -8,19 +8,20 @@
     </div>
 
 
-     <a href="{% url 'home' %}"
-            class="bg-white-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition transform hover:scale-105">
-            Back to Home
-        </a>
-        <br>
-        <br>
+    <a href="{% url 'home' %}"
+        class="bg-white-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition transform hover:scale-105">
+        Back to Home
+    </a>
+    <br>
+    <br>
     {% if data %}
-    <div class="flex flex-col lg:flex-row gap-10">
+    <div class="flex flex-col lg:flex-row gap-10" id="cart-container">
 
         <!-- Cart Items List -->
-        <div class="lg:w-2/3 space-y-6">
+        <div class="lg:w-2/3 space-y-6" id="cart-items-list">
             {% for item in data %}
-            <div class="glass p-6 rounded-2xl flex items-center gap-6 relative group overflow-hidden">
+            <div class="glass p-6 rounded-2xl flex items-center gap-6 relative group overflow-hidden cart-item-row"
+                id="item-row-{{ item.id }}">
                 <!-- Image -->
                 <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
                     {% if item.item.product_image %}
@@ -39,13 +40,14 @@
                     <!-- Qty Controls -->
                     <div class="flex items-center gap-4">
                         <div class="flex items-center bg-black/40 rounded-lg p-1 border border-gray-700">
-                            <form action="{% url 'decrease_qty' item.id %}" method="POST">
+                            <form action="{% url 'decrease_qty' item.id %}" method="POST" class="qty-form">
                                 {% csrf_token %}
                                 <button type="submit"
                                     class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition font-bold">-</button>
                             </form>
-                            <span class="w-8 text-center text-white font-bold text-sm">{{ item.qty }}</span>
-                            <form action="{% url 'increase_qty' item.id %}" method="POST">
+                            <span class="w-8 text-center text-white font-bold text-sm item-qty-value"
+                                id="qty-{{ item.id }}">{{ item.qty }}</span>
+                            <form action="{% url 'increase_qty' item.id %}" method="POST" class="qty-form">
                                 {% csrf_token %}
                                 <button type="submit"
                                     class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition font-bold">+</button>
@@ -53,7 +55,8 @@
                         </div>
 
                         <a href="{% url 'delete_cart' item.id %}"
-                            class="text-gray-500 hover:text-red-500 transition text-sm flex items-center gap-1">
+                            class="text-gray-500 hover:text-red-500 transition text-sm flex items-center gap-1 delete-cart-link"
+                            data-item-id="{{ item.id }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,7 +70,8 @@
                 <!-- Total for Item -->
                 <div class="text-right hidden sm:block">
                     <p class="text-gray-400 text-xs">Total</p>
-                    <p class="text-xl font-bold text-white">₹{{ item.total_price }}</p>
+                    <p class="text-xl font-bold text-white">₹<span class="item-total-val"
+                            id="item-total-{{ item.id }}">{{ item.total_price }}</span></p>
                 </div>
             </div>
             {% endfor %}
@@ -86,7 +90,7 @@
                 <div class="space-y-3 mb-6">
                     <div class="flex justify-between text-gray-400">
                         <span>Subtotal</span>
-                        <span class="text-white">₹{{ total_price }}</span>
+                        <span class="text-white">₹<span id="cart-subtotal">{{ total_price }}</span></span>
                     </div>
                     <div class="flex justify-between text-gray-400">
                         <span>Taxes (Included)</span>
@@ -94,7 +98,7 @@
                     </div>
                     <div class="border-t border-gray-700 pt-3 flex justify-between text-xl font-bold text-white">
                         <span>Total</span>
-                        <span class="text-red-500">₹{{ total_price }}</span>
+                        <span class="text-red-500">₹<span id="cart-total">{{ total_price }}</span></span>
                     </div>
                 </div>
 
@@ -108,9 +112,11 @@
         </div>
 
     </div>
-    {% else %}
-    <!-- Empty Cart State -->
-    <div class="text-center py-20 bg-gray-900/50 rounded-3xl border border-gray-800 border-dashed">
+    {% endif %}
+
+    <!-- Empty Cart State (Initially Hidden if items exist) -->
+    <div id="empty-cart-message"
+        class="{% if data %}hidden{% endif %} text-center py-20 bg-gray-900/50 rounded-3xl border border-gray-800 border-dashed">
         <div class="text-8xl mb-6">🛒</div>
         <h3 class="text-3xl font-bold text-gray-300 mb-2">Your Cart is Empty</h3>
         <p class="text-gray-500 mb-8 max-w-sm mx-auto">Looks like you haven't added any delicious food yet.</p>
@@ -119,7 +125,107 @@
             Start Ordering
         </a>
     </div>
-    {% endif %}
 
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Helper to update the cart summary UI
+        function updateCartSummary(cartTotal, cartCount) {
+            const subtotalElem = document.getElementById('cart-subtotal');
+            const totalElem = document.getElementById('cart-total');
+            if (subtotalElem) subtotalElem.textContent = cartTotal;
+            if (totalElem) totalElem.textContent = cartTotal;
+
+            // Update total items count in main heading
+            const itemsCountElem = document.querySelector('h2 + span');
+            if (itemsCountElem) itemsCountElem.textContent = cartCount + ' Items';
+
+            // Show empty message if count is 0
+            if (cartCount === 0) {
+                const container = document.getElementById('cart-container');
+                const emptyMsg = document.getElementById('empty-cart-message');
+                if (container) container.classList.add('hidden');
+                if (emptyMsg) emptyMsg.classList.remove('hidden');
+            }
+        }
+
+        // Handle AJAX for quantity updates (+/-)
+        document.querySelectorAll('.qty-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const url = this.action;
+                const formData = new FormData(this);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    },
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const itemId = url.split('/').filter(Boolean).pop();
+                            const qtyElem = document.getElementById(`qty-${itemId}`);
+                            const totalElem = document.getElementById(`item-total-${itemId}`);
+                            const rowElem = document.getElementById(`item-row-${itemId}`);
+
+                            if (data.removed || data.item_qty === 0) {
+                                if (rowElem) rowElem.remove();
+                            } else {
+                                if (qtyElem) qtyElem.textContent = data.item_qty;
+                                if (totalElem) totalElem.textContent = data.item_total;
+                            }
+
+                            updateCartSummary(data.cart_total, data.cart_count);
+                            if (typeof window.updateCartBadge === 'function') {
+                                window.updateCartBadge(data.cart_count);
+                            }
+                        } else {
+                            if (typeof window.showToast === 'function') {
+                                window.showToast(data.message, false);
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Cart update failed:', err));
+            });
+        });
+
+        // Handle AJAX for item removal link
+        document.querySelectorAll('.delete-cart-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = this.href;
+                const itemId = this.dataset.itemId;
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const rowElem = document.getElementById(`item-row-${itemId}`);
+                            if (rowElem) rowElem.remove();
+
+                            updateCartSummary(data.cart_total, data.cart_count);
+                            if (typeof window.updateCartBadge === 'function') {
+                                window.updateCartBadge(data.cart_count);
+                            }
+                            if (typeof window.showToast === 'function') {
+                                window.showToast(data.message, true);
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Cart delete failed:', err));
+            });
+        });
+    });
+</script>
 {% endblock %}

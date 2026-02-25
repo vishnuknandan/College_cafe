@@ -73,10 +73,10 @@
     </style>
 
     <script>
-        // Only force-reload on auth pages to prevent stale login/logout state.
-        // Skipping this on normal pages (cart, home, etc.) avoids unwanted full refreshes.
+        // Only force-reload on auth pages and home to prevent stale login/logout state/cart count.
+        // Skipping this on normal pages (cart, etc.) avoids unwanted full refreshes.
         window.addEventListener("pageshow", function (event) {
-            var authPaths = ['/', '/login/', '/register/', '/logout/'];
+            var authPaths = ['/', '/login/', '/register/', '/logout/', '/home'];
             var isAuthPage = authPaths.indexOf(window.location.pathname) !== -1;
             if (isAuthPage && (event.persisted || (window.performance && window.performance.navigation.type === 2))) {
                 window.location.reload();

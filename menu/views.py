@@ -355,13 +355,31 @@ class CartView(View):
 class IncreaseQty(View):
     def post(self, request, pk):
         item = get_object_or_404(Cart, id=pk, user=request.user)
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
         
         # Check stock availability
         if item.item.quantity > item.qty:
             item.qty += 1
             item.save()
+            success = True
+            message = "Quantity increased."
         else:
-            messages.warning(request, f"Only {item.item.quantity} units available.")
+            success = False
+            message = f"Only {item.item.quantity} units available."
+            if not is_ajax:
+                messages.warning(request, message)
+
+        if is_ajax:
+            total_price = sum(i.qty * i.item.selling_price for i in Cart.objects.filter(user=request.user))
+            cart_count = Cart.objects.filter(user=request.user).count()
+            return JsonResponse({
+                "success": success,
+                "message": message,
+                "item_qty": item.qty,
+                "item_total": item.qty * item.item.selling_price,
+                "cart_total": total_price,
+                "cart_count": cart_count
+            })
             
         return redirect("cart")
 
@@ -370,19 +388,50 @@ class IncreaseQty(View):
 class DecreaseQty(View):
     def post(self, request, pk):
         item = get_object_or_404(Cart, id=pk, user=request.user)
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
+        removed = False
         if item.qty > 1:
             item.qty -= 1
             item.save()
+            message = "Quantity decreased."
         else:
             item.delete()
+            removed = True
+            message = "Item removed from cart."
+
+        if is_ajax:
+            total_price = sum(i.qty * i.item.selling_price for i in Cart.objects.filter(user=request.user))
+            cart_count = Cart.objects.filter(user=request.user).count()
+            return JsonResponse({
+                "success": True,
+                "message": message,
+                "removed": removed,
+                "item_qty": 0 if removed else item.qty,
+                "item_total": 0 if removed else (item.qty * item.item.selling_price),
+                "cart_total": total_price,
+                "cart_count": cart_count
+            })
+            
         return redirect("cart")
 
 
 @method_decorator(signin_required, name="dispatch")
 class DeleteCartItemView(View):
     def get(self, request, pk):
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
         Cart.objects.filter(id=pk, user=request.user).delete()
+        
+        if is_ajax:
+            total_price = sum(i.qty * i.item.selling_price for i in Cart.objects.filter(user=request.user))
+            cart_count = Cart.objects.filter(user=request.user).count()
+            return JsonResponse({
+                "success": True,
+                "message": "Item removed from cart",
+                "cart_total": total_price,
+                "cart_count": cart_count
+            })
+
         messages.warning(request, "Item removed from cart")
         return redirect("cart")
 
