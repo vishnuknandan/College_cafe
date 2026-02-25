@@ -10,6 +10,7 @@ from .views import (
     DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView,
     calculation,
     ProfilePasswordOTPRequestView, ProfilePasswordOTPVerifyView, ProfileNewPasswordView,
+    ForgotPasswordRequestView, ForgotPasswordOTPVerifyView, ForgotPasswordNewPasswordView,
 )
 
 urlpatterns = [
@@ -88,6 +89,11 @@ urlpatterns = [
     path("profile/change-password/", ProfilePasswordOTPRequestView.as_view(), name="profile_pwd_otp_request"),
     path("profile/change-password/verify/", ProfilePasswordOTPVerifyView.as_view(), name="profile_otp_verify"),
     path("profile/change-password/new/", ProfileNewPasswordView.as_view(), name="profile_new_password"),
+
+    # ---------------- FORGOT PASSWORD (OTP — PUBLIC) ----------------
+    path("forgot-password/", ForgotPasswordRequestView.as_view(), name="forgot_password"),
+    path("forgot-password/verify/", ForgotPasswordOTPVerifyView.as_view(), name="forgot_password_verify"),
+    path("forgot-password/new-password/", ForgotPasswordNewPasswordView.as_view(), name="forgot_password_new_password"),
 
     # ---------------- CALCULATION DASHBOARD ----------------
     path("calculation/", calculation, name="calculation"),

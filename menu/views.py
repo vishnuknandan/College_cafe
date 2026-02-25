@@ -824,3 +824,135 @@ class ProfileNewPasswordView(View):
 
         messages.success(request, '✅ Password changed successfully!')
         return redirect('profile')
+
+
+# ------------------------ FORGOT PASSWORD (OTP — LOGGED-OUT USERS) ------------------------
+
+@method_decorator(never_cache, name='dispatch')
+class ForgotPasswordRequestView(View):
+    """Step 1: Enter registered email → receive OTP"""
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+        return render(request, 'menu/forgot_password_request.html')
+
+    def post(self, request):
+        email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, 'Please enter your email address.')
+            return render(request, 'menu/forgot_password_request.html')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email address.')
+            return render(request, 'menu/forgot_password_request.html')
+
+        # Generate and store OTP
+        otp_code = str(random.randint(100000, 999999))
+        EmailOTP.objects.filter(email=email).delete()
+        EmailOTP.objects.create(email=email, otp=otp_code)
+        request.session['fp_email'] = email
+
+        # Send OTP email
+        subject = 'LOL Cafe - Password Reset OTP'
+        message = (
+            f'Hi {user.username},\n\n'
+            f'Your password reset code is: {otp_code}\n\n'
+            f'This code is valid for 10 minutes.\n'
+            f'If you did not request this, please ignore this email.\n\n'
+            f'- LOL Cafe Team'
+        )
+        try:
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            messages.success(request, f'A 6-digit code has been sent to {email}.')
+        except Exception as e:
+            print(f'Forgot password OTP email failed: {e}')
+            messages.error(request, 'Failed to send OTP. Please try again.')
+            return render(request, 'menu/forgot_password_request.html')
+
+        return redirect('forgot_password_verify')
+
+
+@method_decorator(never_cache, name='dispatch')
+class ForgotPasswordOTPVerifyView(View):
+    """Step 2: Enter the 6-digit OTP"""
+    def get(self, request):
+        email = request.session.get('fp_email')
+        if not email:
+            messages.error(request, 'Session expired. Please start again.')
+            return redirect('forgot_password')
+        return render(request, 'menu/forgot_password_otp_verify.html', {'email': email})
+
+    def post(self, request):
+        email = request.session.get('fp_email')
+        if not email:
+            messages.error(request, 'Session expired. Please start again.')
+            return redirect('forgot_password')
+
+        digits = [request.POST.get(f'otp_{i}', '').strip() for i in range(1, 7)]
+        entered_otp = ''.join(digits)
+
+        try:
+            otp_record = EmailOTP.objects.filter(email=email).latest('created_at')
+        except EmailOTP.DoesNotExist:
+            messages.error(request, 'OTP not found. Please request a new one.')
+            return redirect('forgot_password')
+
+        if otp_record.is_expired():
+            otp_record.delete()
+            request.session.pop('fp_email', None)
+            messages.error(request, 'OTP has expired. Please start again.')
+            return redirect('forgot_password')
+
+        if entered_otp != otp_record.otp:
+            messages.error(request, 'Invalid OTP. Please try again.')
+            return render(request, 'menu/forgot_password_otp_verify.html', {'email': email})
+
+        # OTP is valid
+        otp_record.delete()
+        request.session['fp_otp_verified'] = True
+        return redirect('forgot_password_new_password')
+
+
+@method_decorator(never_cache, name='dispatch')
+class ForgotPasswordNewPasswordView(View):
+    """Step 3: Set new password"""
+    def get(self, request):
+        if not request.session.get('fp_otp_verified'):
+            messages.error(request, 'Please verify OTP first.')
+            return redirect('forgot_password')
+        return render(request, 'menu/forgot_password_new_password.html')
+
+    def post(self, request):
+        if not request.session.get('fp_otp_verified'):
+            messages.error(request, 'Please verify OTP first.')
+            return redirect('forgot_password')
+
+        email = request.session.get('fp_email')
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        if not new_password or len(new_password) < 6:
+            messages.error(request, 'Password must be at least 6 characters.')
+            return render(request, 'menu/forgot_password_new_password.html')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'menu/forgot_password_new_password.html')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, 'User not found. Please start again.')
+            return redirect('forgot_password')
+
+        user.set_password(new_password)
+        user.save()
+
+        # Cleanup session
+        request.session.pop('fp_email', None)
+        request.session.pop('fp_otp_verified', None)
+
+        messages.success(request, '✅ Password reset successfully! Please log in with your new password.')
+        return redirect('login')
