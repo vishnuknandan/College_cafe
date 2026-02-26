@@ -88,6 +88,7 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- NAVIGATION BAR -->
+    {% block navbar %}
     <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
@@ -186,9 +187,10 @@
             </div>
         </div>
     </nav>
+    {% endblock %}
 
     <!-- CONTENT WRAPPER -->
-    <main class="flex-grow pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full fade-in">
+    <main class="flex-grow {% block main_padding_class %}pt-24{% endblock %} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full fade-in">
 
         <!-- Django Messages (Toasts) -->
         {% if messages %}

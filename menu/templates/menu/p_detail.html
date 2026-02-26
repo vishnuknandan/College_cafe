@@ -1,183 +1,177 @@
 {% extends "menu/base.html" %}
 {% block content %}
 
-<div class="max-w-6xl mx-auto py-10">
+<div class="max-w-6xl mx-auto py-10 space-y-10">
 
-    <!-- Breadcrumb -->
-    <div class="mb-8 flex items-center space-x-2 text-sm text-gray-400">
+    <div class="flex items-center gap-2 text-sm text-gray-400">
         <a href="{% url 'home' %}" class="hover:text-white transition">Home</a>
         <span>/</span>
-        <a href="{% url 'category_detail' data.category.id %}" class="hover:text-white transition">
-            {{ data.category.name }}</a>
+        <a href="{% url 'category_detail' data.category.id %}" class="hover:text-white transition">{{ data.category.name }}</a>
         <span>/</span>
         <span class="text-red-500 font-semibold">{{ data.name }}</span>
     </div>
 
-    <div class="glass rounded-3xl overflow-hidden shadow-2xl border border-gray-800">
-        <div class="grid grid-cols-1 md:grid-cols-2">
-
-            <!-- Left: Image Section -->
-            <div class="relative h-[400px] md:h-auto bg-gray-900 group overflow-hidden">
+    <section class="glass rounded-3xl border border-gray-800 overflow-hidden shadow-2xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2">
+            <div class="relative min-h-[360px] bg-gray-900">
                 {% if data.product_image %}
-                <img src="{{ data.product_image.url }}"
-                    class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition duration-1000">
+                <img src="{{ data.product_image.url }}" alt="{{ data.name }}" class="absolute inset-0 w-full h-full object-cover">
                 {% else %}
-                <div class="flex items-center justify-center h-full bg-gradient-to-br from-gray-900 to-black">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-800" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                </div>
+                <div class="absolute inset-0 flex items-center justify-center text-gray-700 text-xl font-bold">No image</div>
                 {% endif %}
-
-                <!-- Overlay Gradient -->
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
             </div>
 
-            <!-- Right: Details Section -->
-            <div class="p-8 md:p-12 flex flex-col justify-center bg-black/40 backdrop-blur-md">
-
-                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">{{ data.name }}</h1>
-                <p class="text-red-500 text-sm font-bold uppercase tracking-widest mb-6">{{ data.category.name }}</p>
-
-                <div class="mb-8">
-                    <p class="text-gray-300 text-lg leading-relaxed">{{ data.description }}</p>
+            <div class="p-8 lg:p-10 bg-black/40">
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="px-3 py-1 rounded-full bg-white/10 text-xs font-semibold uppercase tracking-wide text-gray-200">{{ data.category.name }}</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide {% if data.is_veg %}bg-green-500/15 text-green-300 border border-green-500/30{% else %}bg-red-500/15 text-red-300 border border-red-500/30{% endif %}">
+                        {% if data.is_veg %}Veg{% else %}Non Veg{% endif %}
+                    </span>
                 </div>
 
-                <!-- Price Block -->
-                <div class="flex items-end gap-4 mb-8">
-                    <div class="text-5xl font-bold text-white">₹{{ data.selling_price }}</div>
-                    {% if data.selling_price < data.original_price %} <div
-                        class="text-xl text-gray-500 line-through mb-2">₹{{ data.original_price }}
+                <h1 class="text-4xl font-extrabold text-white leading-tight">{{ data.name }}</h1>
+                <p class="text-gray-300 mt-4 leading-relaxed">{{ data.description }}</p>
+
+                <div class="mt-8 flex items-end gap-4">
+                    <p class="text-4xl font-bold text-white">Rs. {{ data.selling_price }}</p>
+                    {% if data.selling_price < data.original_price %}
+                    <p class="text-lg text-gray-500 line-through pb-1">Rs. {{ data.original_price }}</p>
+                    {% endif %}
                 </div>
-                <span class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mb-3">SAVE BIG</span>
-                {% endif %}
-            </div>
 
-            <!-- Quantity & Actions -->
-            <div class="space-y-6">
+                <div class="mt-3 text-sm {% if data.quantity > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                    {% if data.quantity > 0 %}In stock: {{ data.quantity }} available{% else %}Currently out of stock{% endif %}
+                </div>
 
-                <!-- Quantity Selector -->
-                <div class="flex items-center space-x-4">
-                    <label class="text-gray-400 font-semibold uppercase text-xs tracking-wider">Quantity</label>
-                    <div class="flex items-center bg-gray-800 rounded-lg border border-gray-700">
-                        <button onclick="updateQty(-1)"
-                            class="px-4 py-2 hover:bg-gray-700 text-white font-bold transition">-</button>
-                        <input type="number" id="qty-input" value="1" min="1" max="{{ data.quantity }}" readonly
-                            class="w-12 bg-transparent text-center text-white font-bold border-none focus:ring-0 appearance-none">
-                        <button onclick="updateQty(1)"
-                            class="px-4 py-2 hover:bg-gray-700 text-white font-bold transition">+</button>
+                <div class="mt-7 space-y-5">
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Quantity</span>
+                        <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg">
+                            <button type="button" onclick="updateQty(-1)" class="px-4 py-2 text-white hover:bg-gray-800 transition">-</button>
+                            <input id="qty-input" type="number" value="1" min="1" max="{{ data.quantity }}" readonly class="w-12 text-center bg-transparent text-white font-bold border-none focus:ring-0">
+                            <button type="button" onclick="updateQty(1)" class="px-4 py-2 text-white hover:bg-gray-800 transition">+</button>
+                        </div>
                     </div>
-                    <span class="text-gray-500 text-xs">({{ data.quantity }} available)</span>
-                </div>
 
-                {% if data.quantity > 0 %}
-                <div class="grid grid-cols-2 gap-4 pt-4">
-                    <a href="#" onclick="addToCart(event)"
-                        class="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-xl border border-gray-600 hover:border-white transition group focus:scale-95">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:text-red-500 transition"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Add to Cart
-                    </a>
-
-                    <a href="#" onclick="buyNow(event)"
-                        class="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition focus:scale-95">
-                        Buy Now ⚡
-                    </a>
+                    {% if data.quantity > 0 %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <a href="#" onclick="addToCart(event)" class="text-center bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl border border-gray-600 transition">
+                            Add to Cart
+                        </a>
+                        <a href="#" onclick="buyNow(event)" class="text-center bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition">
+                            Buy Now
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center bg-gray-900 text-gray-400 font-semibold py-3 rounded-xl border border-gray-700">
+                        Not available right now
+                    </div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div
-                    class="w-full bg-gray-800 text-gray-400 font-bold py-4 rounded-xl text-center border border-gray-700 cursor-not-allowed">
-                    Out of Stock ❌
-                </div>
-                {% endif %}
             </div>
-
-            <div class="mt-8 pt-6 border-t border-gray-700/50 flex items-center justify-between text-sm text-gray-500">
-                <span>Secure Transaction 🔒</span>
-                <span>Fast Delivery 🚀</span>
-            </div>
-
-            <script>
-                function updateQty(change) {
-                    const input = document.getElementById('qty-input');
-                    let val = parseInt(input.value);
-                    let max = parseInt("{{ data.quantity }}");
-                    val += change;
-                    if (val < 1) val = 1;
-                    if (val > max) val = max;
-                    input.value = val;
-                }
-
-                function addToCart(e) {
-                    e.preventDefault();
-                    const qty = document.getElementById('qty-input').value;
-                    const url = "{% url 'add_to_cart' data.id %}?qty=" + qty;
-
-                    // Use the global AJAX handler from base.html if available,
-                    // otherwise fall back to page navigation.
-                    fetch(url, {
-                        method: 'GET',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        credentials: 'same-origin',
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            // Reuse the global toast & badge helpers defined in base.html
-                            if (typeof showToast === 'function') showToast(data.message, data.success);
-                            if (data.success && typeof updateCartBadge === 'function') {
-                                updateCartBadge(data.cart_count);
-                            }
-                        })
-                        .catch(() => {
-                            // Graceful fallback — redirect if fetch somehow fails
-                            window.location.href = url;
-                        });
-                }
-
-                function buyNow(e) {
-                    e.preventDefault();
-                    const qty = document.getElementById('qty-input').value;
-                    window.location.href = "{% url 'buy' data.id %}?qty=" + qty;
-                }
-            </script>
-
         </div>
-    </div>
-</div>
+    </section>
 
-<!-- Reviews Section -->
-<div class="mt-12 border-t border-gray-700 pt-8">
-    <h3 class="text-2xl font-bold text-white mb-6">Customer Reviews ⭐</h3>
-
-    {% if data.review_set.all %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {% for review in data.review_set.all|dictsortreversed:"date"|slice:":5" %}
-        <div class="glass p-6 rounded-2xl border border-gray-700/50">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-red-900 flex items-center justify-center text-xs font-bold">
-                        {{review.user.username|slice:":1"|upper }}</div>
-                    <span class="font-bold text-gray-200">{{ review.user.username }}</span>
+    <section class="space-y-5">
+        <h2 class="text-2xl font-bold text-white">Top Reviews</h2>
+        {% if top_reviews %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for review in top_reviews %}
+            <div class="glass border border-gray-700/60 rounded-2xl p-5">
+                <div class="flex items-center justify-between">
+                    <p class="text-gray-200 font-semibold">{{ review.user.username }}</p>
+                    <p class="text-yellow-400 text-sm font-bold">{{ review.rating }}/5</p>
                 </div>
-                <span class="text-yellow-500 font-bold text-sm">
-                    {% for i in "12345" %}
-                    {% if forloop.counter <= review.rating %} ★ {% else %} ☆ {% endif %} {% endfor %} </span>
+                <p class="mt-3 text-gray-300 text-sm">"{{ review.comment }}"</p>
+                <p class="mt-3 text-gray-500 text-xs uppercase tracking-wide">{{ review.date|date:"F d, Y" }}</p>
             </div>
-            <p class="text-gray-400 italic text-sm">"{{ review.comment }}"</p>
-            <p class="text-gray-600 text-[10px] mt-3 uppercase tracking-wider">{{ review.date|date:"F d, Y" }}</p>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-gray-500 italic">No reviews yet for this product.</p>
-    {% endif %}
+        {% else %}
+        <p class="text-gray-500">No reviews yet for this product.</p>
+        {% endif %}
+    </section>
+
+    <section class="space-y-5">
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-white">Recommended Products</h2>
+            <a href="{% url 'category_detail' data.category.id %}" class="text-sm text-red-400 hover:text-red-300 transition">View all in {{ data.category.name }}</a>
+        </div>
+
+        {% if similar_products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for product in similar_products %}
+            <article class="glass border border-gray-800 rounded-2xl overflow-hidden group">
+                <a href="{% url 'product_detail' product.id %}" class="block">
+                    <div class="h-40 bg-gray-900 overflow-hidden">
+                        {% if product.product_image %}
+                        <img src="{{ product.product_image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-700 text-sm">No image</div>
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="p-4">
+                    <p class="text-white font-semibold truncate">{{ product.name }}</p>
+                    <div class="mt-2 flex items-center gap-2">
+                        <p class="text-red-400 font-bold text-sm">Rs. {{ product.selling_price }}</p>
+                        {% if product.selling_price < product.original_price %}
+                        <p class="text-gray-500 text-xs line-through">Rs. {{ product.original_price }}</p>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'product_detail' product.id %}" class="mt-4 inline-block w-full text-center bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 rounded-lg transition">
+                        View
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500">No related products available in this category.</p>
+        {% endif %}
+    </section>
 </div>
 
-</div>
+<script>
+    function updateQty(change) {
+        const input = document.getElementById('qty-input');
+        let value = parseInt(input.value, 10);
+        const max = parseInt("{{ data.quantity }}", 10);
+
+        value += change;
+        if (value < 1) value = 1;
+        if (value > max) value = max;
+        input.value = value;
+    }
+
+    function addToCart(event) {
+        event.preventDefault();
+        const qty = document.getElementById('qty-input').value;
+        const url = "{% url 'add_to_cart' data.id %}?qty=" + qty;
+
+        fetch(url, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+            .then((res) => res.json())
+            .then((payload) => {
+                if (typeof showToast === 'function') showToast(payload.message, payload.success);
+                if (payload.success && typeof updateCartBadge === 'function') {
+                    updateCartBadge(payload.cart_count);
+                }
+            })
+            .catch(() => {
+                window.location.href = url;
+            });
+    }
+
+    function buyNow(event) {
+        event.preventDefault();
+        const qty = document.getElementById('qty-input').value;
+        window.location.href = "{% url 'buy' data.id %}?qty=" + qty;
+    }
+</script>
 
 {% endblock %}
