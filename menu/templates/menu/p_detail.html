@@ -3,12 +3,17 @@
 
 <div class="max-w-6xl mx-auto py-10 space-y-10">
 
-    <div class="flex items-center gap-2 text-sm text-gray-400">
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 text-sm text-gray-400">
         <a href="{% url 'home' %}" class="hover:text-white transition">Home</a>
         <span>/</span>
         <a href="{% url 'category_detail' data.category.id %}" class="hover:text-white transition">{{ data.category.name }}</a>
         <span>/</span>
         <span class="text-red-500 font-semibold">{{ data.name }}</span>
+        </div>
+        <a href="{{ back_url }}" class="text-sm font-semibold text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition">
+            Back
+        </a>
     </div>
 
     <section class="glass rounded-3xl border border-gray-800 overflow-hidden shadow-2xl">
@@ -103,7 +108,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {% for product in similar_products %}
             <article class="glass border border-gray-800 rounded-2xl overflow-hidden group">
-                <a href="{% url 'product_detail' product.id %}" class="block">
+                <a href="{% url 'product_detail' product.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="block">
                     <div class="h-40 bg-gray-900 overflow-hidden">
                         {% if product.product_image %}
                         <img src="{{ product.product_image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
@@ -120,7 +125,7 @@
                         <p class="text-gray-500 text-xs line-through">Rs. {{ product.original_price }}</p>
                         {% endif %}
                     </div>
-                    <a href="{% url 'product_detail' product.id %}" class="mt-4 inline-block w-full text-center bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 rounded-lg transition">
+                    <a href="{% url 'product_detail' product.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="mt-4 inline-block w-full text-center bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 rounded-lg transition">
                         View
                     </a>
                 </div>

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
 from django.db.models import F, Sum, Q
 from django.views import View
 from django.views.generic import ListView
@@ -11,6 +12,7 @@ from django.views.decorators.cache import never_cache
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+from urllib.parse import urlparse
 from datetime import datetime, timedelta
 import random
 import string
@@ -237,11 +239,23 @@ class ProductDetailView(View):
             category=product.category,
             quantity__gt=0
         ).exclude(id=product.id)[:8]
+        back_url = reverse_lazy("home")
+        next_url = request.GET.get("next")
+
+        if next_url and next_url.startswith("/"):
+            back_url = next_url
+        else:
+            referer = request.META.get("HTTP_REFERER", "")
+            if referer:
+                parsed = urlparse(referer)
+                if "/search/" in parsed.path:
+                    back_url = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
 
         return render(request, "menu/p_detail.html", {
             "data": product,
             "top_reviews": top_reviews,
             "similar_products": similar_products,
+            "back_url": back_url,
         })
 
 
@@ -611,9 +625,57 @@ class BuyNowView(View):
 @method_decorator(never_cache, name="dispatch")
 class UserOrdersView(View):
     def get(self, request):
-        orders = Order.objects.filter(customer=request.user).order_by("-date_order")
+        orders = Order.objects.filter(customer=request.user).select_related("orderitem").order_by("-date_order")
         form = ReviewForm()
-        return render(request, "menu/orders.html", {"orders": orders, "form": form})
+        context = {
+            "orders": orders,
+            "form": form,
+            "total_orders": orders.count(),
+            "active_orders": orders.exclude(order_sts__in=["Delivered", "Cancelled"]).count(),
+            "delivered_orders": orders.filter(order_sts="Delivered").count(),
+            "cancelled_orders": orders.filter(order_sts="Cancelled").count(),
+        }
+        return render(request, "menu/orders.html", context)
+
+
+@method_decorator(signin_required, name="dispatch")
+class CancelOrderView(View):
+    cancellable_statuses = {"waiting for accept"}
+
+    def post(self, request, order_id):
+        confirm_text = (request.POST.get("confirm_text") or "").strip()
+        if confirm_text != "CANCEL ORDER":
+            messages.error(request, "Type 'CANCEL ORDER' exactly to cancel.")
+            return redirect("my_orders")
+
+        with transaction.atomic():
+            order = get_object_or_404(
+                Order.objects.select_for_update().select_related("orderitem"),
+                id=order_id,
+                customer=request.user,
+            )
+
+            current_status = (order.order_sts or "").strip().lower()
+
+            if current_status == "cancelled":
+                messages.warning(request, "This order is already cancelled.")
+                return redirect("my_orders")
+
+            if current_status not in self.cancellable_statuses:
+                messages.error(request, "You can cancel only when order is in 'waiting for accept' status.")
+                return redirect("my_orders")
+
+            order.order_sts = "Cancelled"
+            order.status_updated_at = timezone.now()
+            order.save(update_fields=["order_sts", "status_updated_at"])
+
+            # Restock because this order was not accepted yet.
+            product = order.orderitem
+            product.quantity = F("quantity") + order.qty
+            product.save(update_fields=["quantity"])
+
+        messages.success(request, f"Order #{order.id} cancelled successfully.")
+        return redirect("my_orders")
 
 @method_decorator(signin_required, name="dispatch")
 class AddReviewView(View):
@@ -647,7 +709,15 @@ class SearchView(View):
     def get(self, request):
         query = request.GET.get("q")
         products = Product.objects.filter(name__icontains=query) if query else None
-        return render(request, "menu/search.html", {"result": products})
+        if request.user.is_authenticated:
+            user_favorites = Favorite.objects.filter(user=request.user).values_list("product_id", flat=True)
+        else:
+            user_favorites = []
+        return render(request, "menu/search.html", {
+            "result": products,
+            "query": query or "",
+            "user_favorites": user_favorites
+        })
 
 
 @method_decorator(signin_required, name="dispatch")

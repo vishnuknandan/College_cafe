@@ -7,7 +7,7 @@ from .views import (
     IncreaseQty, DecreaseQty,
     BuyNowView, UserOrdersView, CheckoutView,
     SearchView, order_success, AddReviewView, ProfileView,
-    DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView,
+    DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView, CancelOrderView,
     calculation,
     ProfilePasswordOTPRequestView, ProfilePasswordOTPVerifyView, ProfileNewPasswordView,
     ForgotPasswordRequestView, ForgotPasswordOTPVerifyView, ForgotPasswordNewPasswordView,
@@ -71,6 +71,7 @@ urlpatterns = [
 
     # ---------------- ORDERS ----------------
     path("my-orders/", UserOrdersView.as_view(), name="my_orders"),
+    path("my-orders/cancel/<int:order_id>/", CancelOrderView.as_view(), name="cancel_order"),
     path("order-success/", order_success, name="order_success"),
     path("add-review/<int:order_id>/", AddReviewView.as_view(), name="add_review"),
 

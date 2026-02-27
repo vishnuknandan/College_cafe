@@ -1,84 +1,240 @@
 {% extends 'menu/base.html' %}
 {% block content %}
 
-<div class="px-6 py-8">
+<div class="relative overflow-hidden rounded-3xl border border-white/10 bg-black/50 backdrop-blur-xl p-6 md:p-10">
+    <div class="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-red-600/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-16 h-64 w-64 rounded-full bg-orange-600/10 blur-3xl pointer-events-none"></div>
 
-    <div class="mb-4">
-        <a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition flex items-center gap-2 w-fit">
-            <span>&larr;</span> Back to Home
-        </a>
-    </div>
-
-    <h2 class="text-3xl font-bold mb-6">My Orders 📦</h2>
-
-    {% if orders %}
-    <div class="space-y-6">
-
-        {% for order in orders %}
-        <div class="bg-black/60 p-6 border border-red-900/40 rounded-lg">
-            <h3 class="text-xl font-bold">Order #{{ order.id }}</h3>
-            <p class="text-gray-400 text-sm">Date: {{ order.date_order }}</p>
-            <p class="text-gray-300">Status: {{ order.order_sts }}</p>
-
-            <div class="mt-3 mb-3 ml-6">
-                {% if order.orderitem %}
-                <p class="text-lg">{{ order.orderitem.name }} × {{ order.qty }}</p>
-                {% else %}
-                <p class="text-gray-500">Item unavailable</p>
-                {% endif %}
+    <div class="relative z-10">
+        <div class="mb-8 flex items-center justify-between gap-4">
+            <div>
+                <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
+                    <span>&larr;</span>
+                    <span>Back to menu</span>
+                </a>
+                <h1 class="mt-3 text-4xl md:text-5xl font-black tracking-tight text-white">
+                    ORDER <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">TRACKER</span>
+                </h1>
+                <p class="mt-2 text-gray-400">Live status for every order, with quick actions when allowed.</p>
             </div>
-
-            <p class="text-red-400 text-lg font-bold">
-                Total: ₹{{ order.price }}
-            </p>
-
-            {% if order.order_sts|lower == 'delivered' %}
-            <div class="mt-6 border-t border-gray-700 pt-4">
-                {% if order.review_set.exists %}
-                <p class="text-green-500 font-bold italic">Feedback Submitted! Thank you.</p>
-                {% else %}
-                <details class="group">
-                    <summary
-                        class="flex justify-between items-center cursor-pointer list-none text-white font-bold hover:text-red-500 transition">
-                        <span>Give Feedback & Rating</span>
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </summary>
-
-                    <div class="mt-4 space-y-4 bg-gray-900/40 p-4 rounded-lg">
-                        <form action="{% url 'add_review' order.id %}" method="POST" class="space-y-4">
-                            {% csrf_token %}
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="flex flex-col space-y-2">
-                                    <label class="text-sm text-gray-400">Rating (1-5)</label>
-                                    {{ form.rating }}
-                                </div>
-                                <div class="flex flex-col space-y-2">
-                                    <label class="text-sm text-gray-400">Comment</label>
-                                    {{ form.comment }}
-                                </div>
-                            </div>
-                            <button type="submit"
-                                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-lg transition shadow-lg">
-                                Submit Feedback
-                            </button>
-                        </form>
-                    </div>
-                </details>
-                {% endif %}
-            </div>
-            {% endif %}
         </div>
-        {% endfor %}
 
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p class="text-xs uppercase tracking-widest text-gray-400">Total</p>
+                <p class="mt-1 text-3xl font-extrabold text-white">{{ total_orders }}</p>
+            </div>
+            <div class="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+                <p class="text-xs uppercase tracking-widest text-yellow-300">Active</p>
+                <p class="mt-1 text-3xl font-extrabold text-yellow-300">{{ active_orders }}</p>
+            </div>
+            <div class="rounded-2xl border border-green-500/30 bg-green-500/10 p-4">
+                <p class="text-xs uppercase tracking-widest text-green-300">Delivered</p>
+                <p class="mt-1 text-3xl font-extrabold text-green-300">{{ delivered_orders }}</p>
+            </div>
+            <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+                <p class="text-xs uppercase tracking-widest text-red-300">Cancelled</p>
+                <p class="mt-1 text-3xl font-extrabold text-red-300">{{ cancelled_orders }}</p>
+            </div>
+        </div>
+
+        {% if orders %}
+        <div class="space-y-5">
+            {% for order in orders %}
+            <article class="group rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5 md:p-6 hover:border-red-500/40 transition duration-300">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="text-xl font-black text-white tracking-tight">Order #{{ order.id }}</p>
+                            <span class="text-xs px-3 py-1 rounded-full border
+                                {% if order.order_sts == 'waiting for accept' %}bg-yellow-500/15 text-yellow-300 border-yellow-500/30
+                                {% elif order.order_sts == 'accepted and cooking' %}bg-orange-500/15 text-orange-300 border-orange-500/30
+                                {% elif order.order_sts == 'ready to pickup' %}bg-blue-500/15 text-blue-300 border-blue-500/30
+                                {% elif order.order_sts == 'Delivered' %}bg-green-500/15 text-green-300 border-green-500/30
+                                {% else %}bg-red-500/15 text-red-300 border-red-500/30{% endif %}">
+                                {{ order.order_sts }}
+                            </span>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                            <p class="text-gray-400">Tracking: <span class="text-gray-200">{{ order.tracking_no|default:"--" }}</span></p>
+                            <p class="text-gray-400">Placed: <span class="text-gray-200">{{ order.date_order|date:"M d, Y - h:i A" }}</span></p>
+                            <p class="text-gray-400">Payment: <span class="text-gray-200">{{ order.payment_method }}</span></p>
+                            <p class="text-gray-400">Last update: <span class="text-gray-200">{{ order.status_updated_at|default:order.date_order|date:"M d, Y - h:i A" }}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="w-full lg:w-auto lg:min-w-[230px] rounded-2xl border border-white/10 bg-black/40 p-4">
+                        <p class="text-xs uppercase tracking-widest text-gray-400">Order Amount</p>
+                        <p class="mt-1 text-3xl font-black text-white">Rs. {{ order.price|floatformat:0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Qty: {{ order.qty }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <p class="text-xs uppercase tracking-widest text-gray-500">Item</p>
+                        {% if order.orderitem %}
+                        <p class="text-lg font-bold text-white">{{ order.orderitem.name }}</p>
+                        {% else %}
+                        <p class="text-sm text-gray-500">Item unavailable</p>
+                        {% endif %}
+                    </div>
+
+                    {% if order.order_sts == 'waiting for accept' %}
+                    <form method="POST" action="{% url 'cancel_order' order.id %}" class="cancel-order-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="confirm_text" value="">
+                        <button type="button" class="open-cancel-modal inline-flex items-center justify-center rounded-xl border border-red-500/40 bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 transition">
+                            Cancel Order
+                        </button>
+                    </form>
+                    {% elif order.order_sts == 'Cancelled' %}
+                    <p class="text-sm font-semibold text-red-300">This order was cancelled.</p>
+                    {% else %}
+                    <p class="text-sm font-semibold text-gray-400">Cancellation not allowed at this stage.</p>
+                    {% endif %}
+                </div>
+
+                {% if order.order_sts|lower == 'delivered' %}
+                <div class="mt-5 border-t border-white/10 pt-5">
+                    {% if order.review_set.exists %}
+                    <p class="text-green-400 font-semibold">Feedback submitted. Thank you.</p>
+                    {% else %}
+                    <details class="group/review">
+                        <summary class="flex justify-between items-center cursor-pointer list-none text-white font-bold hover:text-red-400 transition">
+                            <span>Add feedback and rating</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-open/review:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <form action="{% url 'add_review' order.id %}" method="POST" class="space-y-4">
+                                {% csrf_token %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-sm text-gray-400">Rating (1-5)</label>
+                                        {{ form.rating }}
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm text-gray-400">Comment</label>
+                                        {{ form.comment }}
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 transition">
+                                    Submit Feedback
+                                </button>
+                            </form>
+                        </div>
+                    </details>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-12 text-center">
+            <h2 class="text-3xl font-black text-white tracking-tight">No Orders Yet</h2>
+            <p class="mt-2 text-gray-400">You have not placed any order. Browse menu and place your first order.</p>
+            <a href="{% url 'home' %}" class="inline-block mt-6 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 transition">
+                Explore Menu
+            </a>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <p class="text-gray-400">No orders yet.</p>
-    {% endif %}
-
 </div>
+
+<div id="cancel-modal-backdrop" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 p-4">
+    <div class="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0d0d0d] p-6 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+        <div class="mb-4">
+            <p class="text-xs uppercase tracking-widest text-red-400">Final Confirmation</p>
+            <h3 class="mt-1 text-2xl font-black text-white">Cancel This Order?</h3>
+            <p class="mt-2 text-sm text-gray-400">Type <span class="font-bold text-white">CANCEL ORDER</span> to continue.</p>
+        </div>
+
+        <input
+            id="cancel-modal-input"
+            type="text"
+            autocomplete="off"
+            class="w-full rounded-xl border border-white/15 bg-black/50 px-4 py-3 text-white placeholder-gray-500 focus:border-red-500 focus:outline-none"
+            placeholder="Type CANCEL ORDER" />
+
+        <p id="cancel-modal-hint" class="mt-2 text-xs text-gray-500">Case sensitive confirmation required.</p>
+
+        <div class="mt-5 grid grid-cols-2 gap-3">
+            <button id="cancel-modal-close" type="button" class="rounded-xl border border-white/20 bg-white/5 py-2.5 text-sm font-bold text-gray-300 hover:bg-white/10 transition">
+                Keep Order
+            </button>
+            <button id="cancel-modal-submit" type="button" disabled class="rounded-xl border border-red-500/30 bg-red-700/50 py-2.5 text-sm font-bold text-white/70 cursor-not-allowed transition">
+                Confirm Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const backdrop = document.getElementById('cancel-modal-backdrop');
+        const input = document.getElementById('cancel-modal-input');
+        const hint = document.getElementById('cancel-modal-hint');
+        const closeBtn = document.getElementById('cancel-modal-close');
+        const submitBtn = document.getElementById('cancel-modal-submit');
+        const expected = 'CANCEL ORDER';
+        let activeForm = null;
+
+        function setSubmitState() {
+            const valid = input.value.trim() === expected;
+            submitBtn.disabled = !valid;
+            if (valid) {
+                submitBtn.className = 'rounded-xl border border-red-500/40 bg-red-600 hover:bg-red-700 py-2.5 text-sm font-bold text-white transition';
+                hint.textContent = 'Confirmation text matched. You can cancel now.';
+                hint.className = 'mt-2 text-xs text-green-400';
+            } else {
+                submitBtn.className = 'rounded-xl border border-red-500/30 bg-red-700/50 py-2.5 text-sm font-bold text-white/70 cursor-not-allowed transition';
+                hint.textContent = 'Case sensitive confirmation required.';
+                hint.className = 'mt-2 text-xs text-gray-500';
+            }
+        }
+
+        function openModal(form) {
+            activeForm = form;
+            input.value = '';
+            setSubmitState();
+            backdrop.classList.remove('hidden');
+            backdrop.classList.add('flex');
+            setTimeout(() => input.focus(), 0);
+        }
+
+        function closeModal() {
+            backdrop.classList.add('hidden');
+            backdrop.classList.remove('flex');
+            activeForm = null;
+        }
+
+        document.querySelectorAll('.open-cancel-modal').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const form = btn.closest('.cancel-order-form');
+                if (!form) return;
+                openModal(form);
+            });
+        });
+
+        input.addEventListener('input', setSubmitState);
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', (event) => {
+            if (event.target === backdrop) closeModal();
+        });
+
+        submitBtn.addEventListener('click', () => {
+            if (!activeForm) return;
+            const hidden = activeForm.querySelector('input[name="confirm_text"]');
+            if (!hidden) return;
+            hidden.value = input.value.trim();
+            activeForm.submit();
+        });
+    })();
+</script>
 
 {% endblock %}
