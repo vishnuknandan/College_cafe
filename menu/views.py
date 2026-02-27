@@ -496,7 +496,7 @@ class CheckoutView(View):
                 c_item.item.save()
 
                 # Create Order
-                payment_method = request.POST.get('payment_method', 'COD')
+                payment_method = 'COD'
                 total += c_item.item.selling_price * c_item.qty
                 Order.objects.create(
                     orderitem=c_item.item,
@@ -514,7 +514,7 @@ class CheckoutView(View):
 
             # Send Email Notification
             subject = f"Order Placed Successfully - {trackno}"
-            message = f"Hi {request.user.username},\n\nYour order has been placed successfully.\nOrder ID: {trackno}\nPayment: {request.POST.get('payment_method', 'COD')}\nTotal Amount: \u20b9{total}\n\nThank you for ordering with us!\n\nUse 'My Orders' to track status."
+            message = f"Hi {request.user.username},\n\nYour order has been placed successfully.\nOrder ID: {trackno}\nPayment: {payment_method}\nTotal Amount: \u20b9{total}\n\nThank you for ordering with us!\n\nUse 'My Orders' to track status."
             try:
                 send_mail(subject, message, settings.EMAIL_HOST_USER if hasattr(settings, 'EMAIL_HOST_USER') else 'admin@foodspot.com', [request.user.email])
             except Exception as e:
@@ -587,7 +587,7 @@ class BuyNowView(View):
             product.save()
 
             # Create Order
-            payment_method = request.POST.get('payment_method', 'COD')
+            payment_method = 'COD'
             current_total = product.selling_price * qty
             Order.objects.create(
                 orderitem=product,
@@ -707,8 +707,12 @@ class AddReviewView(View):
 
 class SearchView(View):
     def get(self, request):
-        query = request.GET.get("q")
-        products = Product.objects.filter(name__icontains=query) if query else None
+        query = (request.GET.get("q") or "").strip()
+        products = None
+        if query:
+            starts_with_qs = Product.objects.filter(name__istartswith=query)
+            contains_qs = Product.objects.filter(name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
+            products = starts_with_qs.union(contains_qs).order_by("name")
         if request.user.is_authenticated:
             user_favorites = Favorite.objects.filter(user=request.user).values_list("product_id", flat=True)
         else:
@@ -718,6 +722,23 @@ class SearchView(View):
             "query": query or "",
             "user_favorites": user_favorites
         })
+
+
+class SearchSuggestView(View):
+    def get(self, request):
+        query = (request.GET.get("q") or "").strip()
+        if not query:
+            return JsonResponse({"results": []})
+
+        starts_with_qs = Product.objects.filter(name__istartswith=query)
+        contains_qs = Product.objects.filter(name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
+        products = starts_with_qs.union(contains_qs).order_by("name")[:8]
+
+        payload = [
+            {"id": p.id, "name": p.name}
+            for p in products
+        ]
+        return JsonResponse({"results": payload})
 
 
 @method_decorator(signin_required, name="dispatch")

@@ -214,9 +214,9 @@
             <!-- Search Bar -->
             {% block search_bar %}
             <form action="{% url 'search' %}" method="GET"
-                class="hidden md:flex items-center bg-white/5 border border-gray-700 rounded-full px-4 py-2 ml-4 focus-within:border-red-500/50 focus-within:bg-white/10 transition">
-                <input type="text" name="q" placeholder="Search food..."
-                    class="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
+                class="search-form relative hidden md:flex items-center bg-white/5 border border-gray-700 rounded-full px-4 py-2 ml-4 focus-within:border-red-500/50 focus-within:bg-white/10 transition">
+                <input type="text" name="q" placeholder="Search food..." autocomplete="off"
+                    class="search-input bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
                 <button type="submit" class="text-gray-400 hover:text-white transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -224,6 +224,8 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </button>
+                <div class="search-suggestions hidden absolute top-[calc(100%+10px)] left-0 w-full rounded-2xl border border-white/10 bg-[#0f0f13]/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+                </div>
             </form>
             {% endblock %}
 
@@ -440,6 +442,81 @@
             // ── Expose helpers globally for page-specific scripts ────────────
             window.showToast = showToast;
             window.updateCartBadge = updateCartBadge;
+        })();
+    </script>
+
+    <script>
+        (function () {
+            const forms = document.querySelectorAll('.search-form');
+            if (!forms.length) return;
+
+            const debounce = (fn, delay) => {
+                let timer = null;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn(...args), delay);
+                };
+            };
+
+            forms.forEach((form) => {
+                const input = form.querySelector('.search-input');
+                const box = form.querySelector('.search-suggestions');
+                if (!input || !box) return;
+
+                const closeBox = () => {
+                    box.classList.add('hidden');
+                    box.innerHTML = '';
+                };
+
+                const renderItems = (items, query) => {
+                    if (!items.length) {
+                        box.innerHTML = '<div class="px-4 py-3 text-sm text-gray-400">No matching items</div>';
+                        box.classList.remove('hidden');
+                        return;
+                    }
+
+                    const links = items.map((item) => (
+                        `<a href="/search/?q=${encodeURIComponent(item.name)}" class="block px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition">
+                            ${item.name}
+                        </a>`
+                    )).join('');
+
+                    box.innerHTML = `
+                        <div class="px-4 py-2 text-[10px] uppercase tracking-widest text-gray-500 border-b border-white/10">Suggestions for "${query}"</div>
+                        ${links}
+                    `;
+                    box.classList.remove('hidden');
+                };
+
+                const fetchSuggestions = debounce(async () => {
+                    const q = input.value.trim();
+                    if (!q) {
+                        closeBox();
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/search/suggest/?q=${encodeURIComponent(q)}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                            credentials: 'same-origin',
+                        });
+                        if (!response.ok) return closeBox();
+                        const data = await response.json();
+                        renderItems(data.results || [], q);
+                    } catch (e) {
+                        closeBox();
+                    }
+                }, 180);
+
+                input.addEventListener('input', fetchSuggestions);
+                input.addEventListener('focus', fetchSuggestions);
+
+                document.addEventListener('click', (event) => {
+                    if (!form.contains(event.target)) {
+                        closeBox();
+                    }
+                });
+            });
         })();
     </script>
 

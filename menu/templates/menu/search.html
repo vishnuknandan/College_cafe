@@ -1,6 +1,13 @@
 {% extends "menu/base.html" %}
 {% block content %}
 
+<div class="mb-4 flex items-center justify-between gap-3">
+    <button type="button" onclick="goBackFromSearch()" class="theme-btn-ghost px-4 py-2 text-xs font-bold uppercase tracking-wider">
+        Back
+    </button>
+    <a href="{% url 'home' %}" class="text-xs text-gray-400 hover:text-white transition">Home</a>
+</div>
+
 <div class="mb-10 text-center fade-in">
     <h2 class="text-4xl font-extrabold text-white mb-2">Search Results</h2>
     <p class="text-gray-400">Found matches for your cravings{% if query %}: "{{ query }}"{% endif %}.</p>
@@ -72,6 +79,14 @@
 {% endif %}
 
 <script>
+    function goBackFromSearch() {
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+        window.location.href = "{% url 'home' %}";
+    }
+
     function setFavoriteVisualState(button, favorited) {
         const outlineIcon = button.querySelector('.favorite-icon-outline');
         const solidIcon = button.querySelector('.favorite-icon-solid');

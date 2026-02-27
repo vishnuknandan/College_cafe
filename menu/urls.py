@@ -6,7 +6,7 @@ from .views import (
     AddToCartView, CartView, DeleteCartItemView,
     IncreaseQty, DecreaseQty,
     BuyNowView, UserOrdersView, CheckoutView,
-    SearchView, order_success, AddReviewView, ProfileView,
+    SearchView, SearchSuggestView, order_success, AddReviewView, ProfileView,
     DeleteAccountView, VerifyOTPView, AddToFavoriteView, RemoveFromFavoriteView, FavoritesListView, CancelOrderView,
     calculation,
     ProfilePasswordOTPRequestView, ProfilePasswordOTPVerifyView, ProfileNewPasswordView,
@@ -77,6 +77,7 @@ urlpatterns = [
 
     # ---------------- SEARCH ----------------
     path("search/", SearchView.as_view(), name="search"),
+    path("search/suggest/", SearchSuggestView.as_view(), name="search_suggest"),
 
     # ---------------- LEGAL & INFO ----------------
     path("terms/", auth_views.TemplateView.as_view(template_name="menu/terms.html"), name="terms"),
