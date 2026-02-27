@@ -62,7 +62,7 @@
                 </div>
 
                 <!-- Bottom: Product swiper cards -->
-                <div class="swiper productSwiper !overflow-visible w-full mt-6">
+                <div class="swiper productSwiper !overflow-visible w-full mt-6" data-offer-count="{{ veg_offers|length }}">
                     <div class="swiper-wrapper items-end">
                         {% for prod in veg_offers %}
                         <div class="swiper-slide !w-[280px] md:!w-[340px]">
@@ -200,7 +200,7 @@
                 </div>
 
                 <!-- Bottom: Product swiper cards -->
-                <div class="swiper productSwiper !overflow-visible w-full mt-6">
+                <div class="swiper productSwiper !overflow-visible w-full mt-6" data-offer-count="{{ nonveg_offers|length }}">
                     <div class="swiper-wrapper items-end">
                         {% for prod in nonveg_offers %}
                         <div class="swiper-slide !w-[280px] md:!w-[340px]">
@@ -446,13 +446,27 @@
         effect: 'slide',
     });
 
-    // Initialize Nested Product Swipers
-    const productSwipers = new Swiper('.productSwiper', {
-        slidesPerView: 'auto',
-        spaceBetween: 20,
-        freeMode: true,
-        grabCursor: true,
-        nested: true, // Crucial for swiper inside swiper
+    // Initialize Nested Product Swipers (Veg + Non-Veg)
+    document.querySelectorAll('.productSwiper').forEach((container) => {
+        const offerCount = parseInt(container.dataset.offerCount || '0', 10);
+        const useStepAutoSlide = offerCount > 5;
+
+        new Swiper(container, {
+            slidesPerView: 'auto',
+            spaceBetween: 20,
+            loop: offerCount > 1,
+            grabCursor: true,
+            nested: true, // Crucial for swiper inside swiper
+            allowTouchMove: true,
+            speed: useStepAutoSlide ? 650 : 3500,
+            freeMode: useStepAutoSlide ? false : { enabled: true, momentum: false },
+            autoplay: {
+                delay: useStepAutoSlide ? 2000 : 1,
+                disableOnInteraction: false,
+                reverseDirection: false,
+                pauseOnMouseEnter: true,
+            },
+        });
     });
 
     // Category Filter Logic
