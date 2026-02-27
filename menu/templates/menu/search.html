@@ -1,7 +1,7 @@
 {% extends "menu/base.html" %}
 {% block content %}
 
-<div class="mb-8 text-center fade-in">
+<div class="mb-10 text-center fade-in">
     <h2 class="text-4xl font-extrabold text-white mb-2">Search Results</h2>
     <p class="text-gray-400">Found matches for your cravings{% if query %}: "{{ query }}"{% endif %}.</p>
 </div>
@@ -9,74 +9,65 @@
 {% if result %}
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
     {% for prod in result %}
-    <div class="glass rounded-2xl overflow-hidden group relative hover:border-red-500/50 transition duration-300">
+    <article class="theme-card group p-3">
+        <div class="relative h-[240px] overflow-hidden theme-media p-3">
+            <div class="absolute top-4 left-4 z-20">
+                <span class="theme-chip {% if prod.is_veg %}text-green-300 border-green-500/30 bg-green-500/10{% else %}text-red-300 border-red-500/30 bg-red-500/10{% endif %}">
+                    {% if prod.is_veg %}Veg{% else %}Non Veg{% endif %}
+                </span>
+            </div>
 
-        <div class="absolute top-4 right-4 z-20">
-            <button type="button"
-                class="favorite-toggle w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg group-hover:scale-110 {% if prod.id in user_favorites %}bg-red-600 text-white{% else %}bg-white/5 backdrop-blur-md border border-white/10 text-white hover:bg-red-600 hover:border-red-600{% endif %}"
-                data-favorited="{% if prod.id in user_favorites %}true{% else %}false{% endif %}"
-                data-add-url="{% url 'add_to_favorite' prod.id %}"
-                data-remove-url="{% url 'remove_from_favorite' prod.id %}"
-                aria-label="{% if prod.id in user_favorites %}Remove from favorites{% else %}Add to favorites{% endif %}">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 favorite-icon-outline {% if prod.id in user_favorites %}hidden{% endif %}"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 favorite-icon-solid {% if prod.id not in user_favorites %}hidden{% endif %}"
-                    viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M3.172 5.172a4 4 0 015.657 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                        clip-rule="evenodd" />
-                </svg>
-            </button>
+            <div class="absolute top-4 right-4 z-20">
+                <button type="button"
+                    class="favorite-toggle w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg group-hover:scale-110 {% if prod.id in user_favorites %}bg-red-600 text-white{% else %}bg-white/5 backdrop-blur-md border border-white/10 text-white hover:bg-red-600 hover:border-red-600{% endif %}"
+                    data-favorited="{% if prod.id in user_favorites %}true{% else %}false{% endif %}"
+                    data-add-url="{% url 'add_to_favorite' prod.id %}"
+                    data-remove-url="{% url 'remove_from_favorite' prod.id %}"
+                    aria-label="{% if prod.id in user_favorites %}Remove from favorites{% else %}Add to favorites{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 favorite-icon-outline {% if prod.id in user_favorites %}hidden{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 favorite-icon-solid {% if prod.id not in user_favorites %}hidden{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.657 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+
+            <a href="{% url 'product_detail' prod.id %}?next={{ request.get_full_path|urlencode }}" class="block h-full w-full">
+                {% if prod.product_image %}
+                <img src="{{ prod.product_image.url }}" class="w-full h-full object-cover rounded-xl transform group-hover:scale-105 transition duration-500">
+                {% else %}
+                <div class="w-full h-full rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-gray-500">No Image</div>
+                {% endif %}
+            </a>
         </div>
 
-        <!-- Image -->
-        <a href="{% url 'product_detail' prod.id %}?next={{ request.get_full_path|urlencode }}" class="block overflow-hidden h-56 relative">
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition z-10"></div>
-            {% if prod.product_image %}
-            <img src="{{ prod.product_image.url }}"
-                class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-            {% else %}
-            <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">No Image</div>
-            {% endif %}
-        </a>
-
-        <!-- Content -->
-        <div class="p-5">
-            <h3 class="text-lg font-bold text-white truncate mb-1 group-hover:text-red-400 transition">
-                {{ prod.name }}
-            </h3>
-            <div class="flex items-end justify-between">
+        <div class="p-4">
+            <h3 class="text-lg font-black text-white truncate mb-1 group-hover:text-red-300 transition">{{ prod.name }}</h3>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">{{ prod.category.name }}</p>
+            <div class="mt-4 flex items-end justify-between border-t border-white/5 pt-4">
                 <div>
-                    <span class="text-xs text-gray-400 line-through">₹{{ prod.original_price }}</span>
-                    <div class="text-xl font-bold text-red-500">₹{{ prod.selling_price }}</div>
+                    {% if prod.selling_price < prod.original_price %}
+                    <span class="text-xs text-gray-500 line-through">Rs. {{ prod.original_price }}</span>
+                    {% endif %}
+                    <div class="text-2xl font-black text-white"><span class="text-red-400">Rs.</span> {{ prod.selling_price|floatformat:0 }}</div>
                 </div>
-                <a href="{% url 'add_to_cart' prod.id %}"
-                    class="bg-white/10 hover:bg-red-600 text-white p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                <a href="{% url 'add_to_cart' prod.id %}" class="theme-btn-ghost w-11 h-11 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v12m6-6H6" />
                     </svg>
                 </a>
             </div>
         </div>
-    </div>
+    </article>
     {% endfor %}
 </div>
 {% else %}
 <div class="text-center py-20">
-    <div class="text-6xl mb-6">🔍</div>
+    <div class="text-6xl mb-6">Search</div>
     <h3 class="text-2xl font-bold text-gray-300 mb-4">No results found</h3>
     <p class="text-gray-500 mb-8">Try searching for something else like "Burger" or "Pizza".</p>
-    <a href="{% url 'home' %}"
-        class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
-        Back to Menu
-    </a>
+    <a href="{% url 'home' %}" class="theme-btn-primary inline-block px-8 py-3">Back to Menu</a>
 </div>
 {% endif %}
 
