@@ -1,7 +1,17 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group, User
+from django.contrib.admin.sites import NotRegistered
 from django.utils import timezone
 from .models import Category, Product, Cart, Order, Review, Profile, Banner
 from .utils import send_order_status_email
+
+
+# Hide default auth models from admin panel
+for model in (User, Group):
+    try:
+        admin.site.unregister(model)
+    except NotRegistered:
+        pass
 
 
 admin.site.register(Category)
