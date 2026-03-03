@@ -27,6 +27,7 @@ class Product(models.Model):
     # calories = models.TextField(null=True, blank=True)
     description = models.TextField(max_length=300, null=False)
     is_veg = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

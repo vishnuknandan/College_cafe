@@ -5,8 +5,15 @@ from .utils import send_order_status_email
 
 
 admin.site.register(Category)
-admin.site.register(Product)
 admin.site.register(Cart)
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'category', 'quantity', 'selling_price', 'is_veg', 'is_active')
+    list_editable = ('is_active',)
+    list_filter = ('is_active', 'is_veg', 'category')
+    search_fields = ('name', 'category__name')
 
 
 @admin.register(Order)

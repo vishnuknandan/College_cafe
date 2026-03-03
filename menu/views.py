@@ -196,6 +196,7 @@ class HomeView(ListView):
         context = super().get_context_data(**kwargs)
         # Offer Zone: Products with discount >= 50%
         offer_products = Product.objects.filter(
+            is_active=True,
             original_price__gt=0,
             selling_price__lte=F('original_price') * 0.5
         )
@@ -205,7 +206,7 @@ class HomeView(ListView):
         context['special_offers'] = offer_products # For the "Special Offer" filter tab
         
         # All Active Products for the main grid
-        context['all_products'] = Product.objects.filter(quantity__gt=0)
+        context['all_products'] = Product.objects.filter(quantity__gt=0, is_active=True)
         
         # Get user favorites if authenticated
         if self.request.user.is_authenticated:
@@ -223,7 +224,7 @@ class HomeView(ListView):
 class CategoryDetailView(View):
     def get(self, request, pk):
         category = Category.objects.get(id=pk)
-        products = Product.objects.filter(category=category)
+        products = Product.objects.filter(category=category, is_active=True)
         return render(request, "menu/category_detail.html", {
             "name": category,
             "data": products
@@ -233,11 +234,12 @@ class CategoryDetailView(View):
 @method_decorator(never_cache, name="dispatch")
 class ProductDetailView(View):
     def get(self, request, pk):
-        product = Product.objects.get(id=pk)
+        product = get_object_or_404(Product, id=pk, is_active=True)
         top_reviews = Review.objects.filter(product=product).select_related('user').order_by('-rating', '-date')[:5]
         similar_products = Product.objects.filter(
             category=product.category,
-            quantity__gt=0
+            quantity__gt=0,
+            is_active=True,
         ).exclude(id=product.id)[:8]
         back_url = reverse_lazy("home")
         next_url = request.GET.get("next")
@@ -264,7 +266,7 @@ class ProductDetailView(View):
 @method_decorator(signin_required, name="dispatch")
 class AddToCartView(View):
     def get(self, request, pk):
-        product = get_object_or_404(Product, id=pk)
+        product = get_object_or_404(Product, id=pk, is_active=True)
         is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
         try:
@@ -316,7 +318,7 @@ class AddToCartView(View):
 @method_decorator(signin_required, name="dispatch")
 class AddToFavoriteView(View):
     def get(self, request, pk):
-        product = get_object_or_404(Product, id=pk)
+        product = get_object_or_404(Product, id=pk, is_active=True)
         Favorite.objects.get_or_create(user=request.user, product=product)
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({
@@ -346,7 +348,7 @@ class RemoveFromFavoriteView(View):
 @method_decorator(signin_required, name="dispatch")
 class FavoritesListView(View):
     def get(self, request):
-        favorites = Favorite.objects.filter(user=request.user).select_related('product')
+        favorites = Favorite.objects.filter(user=request.user, product__is_active=True).select_related('product')
         return render(request, "menu/favorites.html", {"favorites": favorites})
 
 
@@ -534,7 +536,7 @@ class CheckoutView(View):
 @method_decorator(never_cache, name="dispatch")
 class BuyNowView(View):
     def get(self, request, pk):
-        product = get_object_or_404(Product, id=pk)
+        product = get_object_or_404(Product, id=pk, is_active=True)
         
         try:
             qty = int(request.GET.get('qty', 1))
@@ -560,7 +562,7 @@ class BuyNowView(View):
 
     def post(self, request, pk):
         form = UserOrderForm(request.POST)
-        product = get_object_or_404(Product, id=pk)
+        product = get_object_or_404(Product, id=pk, is_active=True)
         
         try:
             qty = int(request.POST.get('qty', 1))
@@ -710,8 +712,8 @@ class SearchView(View):
         query = (request.GET.get("q") or "").strip()
         products = None
         if query:
-            starts_with_qs = Product.objects.filter(name__istartswith=query)
-            contains_qs = Product.objects.filter(name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
+            starts_with_qs = Product.objects.filter(is_active=True, name__istartswith=query)
+            contains_qs = Product.objects.filter(is_active=True, name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
             products = starts_with_qs.union(contains_qs).order_by("name")
         if request.user.is_authenticated:
             user_favorites = Favorite.objects.filter(user=request.user).values_list("product_id", flat=True)
@@ -730,8 +732,8 @@ class SearchSuggestView(View):
         if not query:
             return JsonResponse({"results": []})
 
-        starts_with_qs = Product.objects.filter(name__istartswith=query)
-        contains_qs = Product.objects.filter(name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
+        starts_with_qs = Product.objects.filter(is_active=True, name__istartswith=query)
+        contains_qs = Product.objects.filter(is_active=True, name__icontains=query).exclude(id__in=starts_with_qs.values("id"))
         products = starts_with_qs.union(contains_qs).order_by("name")[:8]
 
         payload = [
